@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "学习",
+  "usingComponents": {
+    "u-parse": "/node-modules/uview-ui/components/u-parse/u-parse",
+    "u-button": "/node-modules/uview-ui/components/u-button/u-button"
+  }
+}

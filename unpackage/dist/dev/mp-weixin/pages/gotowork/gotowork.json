@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "上班打卡",
+  "usingComponents": {
+    "u-avatar": "/node-modules/uview-ui/components/u-avatar/u-avatar",
+    "u-popup": "/node-modules/uview-ui/components/u-popup/u-popup",
+    "u-checkbox-group": "/node-modules/uview-ui/components/u-checkbox-group/u-checkbox-group",
+    "u-checkbox": "/node-modules/uview-ui/components/u-checkbox/u-checkbox",
+    "u-button": "/node-modules/uview-ui/components/u-button/u-button"
+  }
+}
