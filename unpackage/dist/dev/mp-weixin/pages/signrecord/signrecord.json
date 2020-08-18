@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "考勤记录",
-  "usingComponents": {
-    "uni-calendar": "/components/uni-calendar/uni-calendar",
-    "u-button": "/node-modules/uview-ui/components/u-button/u-button"
-  }
-}

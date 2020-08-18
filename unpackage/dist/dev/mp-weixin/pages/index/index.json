@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "主页",
-  "usingComponents": {
-    "u-tabbar": "/node-modules/uview-ui/components/u-tabbar/u-tabbar",
-    "home-page": "/pages/homepage/homepage",
-    "my-page": "/pages/mypage/mypage"
-  }
-}
