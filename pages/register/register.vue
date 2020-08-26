@@ -19,7 +19,7 @@
 					<view class="submitBtn">
 						<u-row gutter="16" justify="around">
 							<u-col span="6">
-								<u-button :custom-style="customStyle" size="medium" type="primary" @click="submit">确认修改</u-button>
+								<u-button :custom-style="customStyle" size="medium" type="primary" @click="submit">确认注册</u-button>
 							</u-col>
 							<u-col span="6">
 								<u-button :custom-style="customStyle" size="medium" type="info" :hair-line="false" @click="cancel">取消</u-button>
@@ -40,6 +40,7 @@
 </template>
 
 <script>
+	import { mapMutations } from 'vuex'; 
 	export default {
 		data() {
 			return {
@@ -97,6 +98,7 @@
 			})
 		},
 		methods: {
+			...mapMutations(['login']),
 			// tabs通知swiper切换
 			tabsChange(index) {
 				this.swiperCurrent = index;
@@ -124,28 +126,134 @@
 				this.$u.toast('倒计时开始')
 			},
 			getCode() {
-				if(this.$refs.uCode.canGetCode) {
-					// 模拟向后端请求验证码
-					uni.showLoading({
-						title: '正在获取验证码'
-					})
-					setTimeout(() => {
-						uni.hideLoading()
-						// 这里此提示会被this.start()方法中的提示覆盖
-						this.$u.toast('验证码已发送')
+				if (this.form.phone !== '') {
+					if(this.$refs.uCode.canGetCode) {
 						// 通知验证码组件内部开始倒计时
 						this.$refs.uCode.start()
-					}, 2000);
+						setTimeout(() => {
+							// 这里此提示会被this.start()方法中的提示覆盖
+							this.$http.get('/phoneNumValidation', {
+								params: {
+									'phoneNum': this.form.phone
+								}
+							}).then((res) => {
+								console.log('res', res)
+								if (res.data.data === undefined) {
+									this.$http.get('/sendVerificationCode', {
+										params: {
+											'phoneNum': this.form.phone
+										}
+									}).then((res) => {
+										this.$u.toast('验证码已发送')
+									})
+									
+								} else {
+									this.$u.toast('手机号已注册')
+									this.$refs.uCode.reset()
+								}
+							})
+						}, 2000);
+					} else {
+						this.$u.toast('倒计时结束后再发送')
+					}
 				} else {
-					this.$u.toast('倒计时结束后再发送')
+					this.$u.toast('请填写正确的手机号')
 				}
 			},
 			submit() {
 				this.$refs['uForm' + this.current][0].validate(valid => {
 					if (valid) {
-						console.log(this.current)
-						console.log(this.form)
-						console.log('验证通过')
+						this.$http.post('/phoneRegist', {
+							'mobile': this.form.phone,
+							'state': this.current // 0个人 1 企业
+						}, {
+							header: {
+								'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
+							}
+						}).then((res) => {
+							console.log(res)
+							this.$u.toast(res.data.message)
+							if (res.data.code === 200) {
+								this.$http.post('/phoneLogin', {
+									'phoneNum': this.form.phone,
+									'code': this.form.code
+								}, {
+									header: {
+										'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
+									}
+								}).then((res) => {
+									if(res.data.code === 200) {
+										this.login(res.data.data)
+										console.log(res.data.data.user.state)
+										// 判断用户是个人登录还是企业登录 0个人 1企业
+										if (res.data.data.user.state === 0) {
+											uni.navigateTo({
+											    url: '/pages/index/index'
+											})
+										} else {
+											uni.navigateTo({
+											    url: '/pages/index/index'
+											})
+										}
+									}
+								})
+							}
+						})
+						// this.$http({
+						// 	url: 'http://192.168.0.34:9527/phoneRegist',
+						// 	data: {
+						// 		'mobile': this.form.phone,
+						// 		'state': this.current // 0个人 1 企业
+						// 	},
+						// 	method: 'POST',
+						// 	header: {
+						// 		'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
+						// 	},
+						// 	dataType: 'json',
+						// 	success: (res) => {
+						// 		uni.showToast({
+						// 			title: res.message
+						// 		})
+								
+						// 		if (res.code === 200) {
+						// 			this.$http({
+						// 				url: 'http://192.168.0.34:9527/phoneLogin',
+						// 				data: {
+						// 					phoneNum: this.form.phone,
+						// 					code: this.form.code
+						// 				},
+						// 				method: 'POST',
+						// 				header: {
+						// 					'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
+						// 				},
+						// 				dataType: 'json',
+						// 				success: (res) => {
+						// 					if(res.data.code === 200) {
+						// 						// this.$store.commit('login', res.data.data)
+						// 						this.login(res.data.data)
+												
+												// 判断用户是个人登录还是企业登录 0个人 1企业
+												// if (res.data.data.user.state === 0) {
+												// 	uni.navigateTo({
+												// 	    url: '/pages/index/index'
+												// 	})
+												// } else {
+												// 	uni.navigateTo({
+												// 	    url: '/pages/index/index'
+												// 	})
+												// }
+						// 					} else {
+						// 						uni.showToast({
+						// 							title: res.data.message,
+						// 							icon: 'none',
+						// 							duration: 2000
+						// 						})
+						// 					}
+						// 				}
+						// 			})
+						// 		}
+						// 	}
+						// })
 					} else {
 						console.log('验证失败')
 					}

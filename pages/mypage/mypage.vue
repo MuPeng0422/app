@@ -4,11 +4,11 @@
 			<view class="avatar">
 				<view class="avatar-container">
 					<view class="avatar-img">
-						<u-avatar :src="userInfo.src" mode="square" :size="150"></u-avatar>
+						<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150" @click="getAvatar"></u-avatar>
 					</view>
 					<view class="avatar-name">
-						<text>{{userInfo.name}}</text>
-						<u-icon name="checkmark-circle" size="40" color="#19be6b"></u-icon>
+						<text>{{userInfo.realName}}</text>
+						<u-icon name="checkmark-circle" size="40" :color="color"></u-icon>
 					</view>
 				</view>
 			</view>
@@ -23,16 +23,84 @@
 </template>
 
 <script>
+	import { mapMutations } from 'vuex';
 	export default {
 		data() {
 			return {
-				userInfo: {
-					src: '',
-					name: '刘大招'
-				}
+				res: {},
+				userInfo: {},
+				color: ''
 			}
 		},
+		onReady() {
+			uni.getStorage({
+				key: 'userInfo',
+				success: (res) => {
+					console.log('res.data', res.data)
+					this.res = res.data
+					this.userInfo = this.res.userInfo
+					
+					if (res.data.userInfo.certificateState === 0) {
+						this.color = '#19be6b'
+					} else if (res.data.userInfo.certificateState === 1) {
+						this.color = '#ff9900'
+					} else if (res.data.userInfo.certificateState === 2) {
+						this.color = '#909399'
+					}
+				}
+			})
+		},
 		methods: {
+			...mapMutations(['login']),
+			getAvatar() {
+				uni.chooseImage({
+					sourceType: ['camera'],
+					success: (res) => {
+						this.userInfo.userpicPath = res.tempFilePaths[0]
+						
+						uni.uploadFile({
+							url: this.$http.config.baseURL + '/user/updateUserInfo',    
+							filePath: this.userInfo.userpicPath,
+							name: 'userPicFile',
+							header: {
+								'Content-Type': 'multipart/form-data',
+								'Authentication': this.res.token,
+							},
+							formData: {
+								'userId': this.res.userInfo.userId
+							},
+							success: (res) =>{
+								let data = JSON.parse(res.data)
+								if (data.code === 200){
+									this.$http.post('/user/findUserById', {
+										'userId': this.res.userInfo.userId
+									}, {
+										header: {
+											'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+											'Authentication': this.res.token
+										}
+									}).then((result) => {
+										this.$u.toast('修改头像成功！')
+										console.log('result', result)
+										let data = {
+											'userInfo': result.data.data,
+											'token': this.res.token
+										}
+										this.login(data)
+										
+										let page = getCurrentPages().pop(); //跳转页面成功之后
+										if (!page) return;
+										page.onLoad();
+										return true
+									})
+								}
+							}
+						})
+					}
+				})
+				
+				
+			},
 			goUserInfo() {
 				uni.navigateTo({
 				    url: '/pages/userInfo/userInfo'

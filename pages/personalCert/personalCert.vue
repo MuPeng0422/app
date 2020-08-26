@@ -10,7 +10,7 @@
 					证件：
 				</view>
 				<view class="upload">
-					<u-upload ref="uUpload" :action="action" :file-list="fileList" max-count="1" upload-text="上传证书"></u-upload>
+					<u-upload ref="uUpload" :file-list="fileList" :auto-upload="false" max-count="1" upload-text="上传证书" @on-list-change="onUploaded"></u-upload>
 				</view>
 			</view>
 			<view class="submitBtn">
@@ -20,7 +20,7 @@
 		
 		<u-select v-model="certSelectTypeShow" mode="single-column" :list="certList" @confirm="getCertType"></u-select>
 		<u-select v-model="certSelectTypeLeaveShow" mode="single-column" :list="children" @confirm="getCertTypeLeave"></u-select>
-		<u-picker v-model="certSelectTimeShow" mode="time" @confirm="getCertTime"></u-picker>
+		<u-picker v-model="certSelectTimeShow" mode="time" :default-time="defaultTime" @confirm="getCertTime"></u-picker>
 	</view>
 </template>
 
@@ -28,6 +28,7 @@
 	export default {
 		data() {
 			return {
+				res: {},
 				certType: 0,
 				certName: '请选择证书',
 				certTime: '请选择证书有效期',
@@ -63,9 +64,17 @@
 						label: '高级'
 					}
 				],
-				action: 'http://www.example.com/upload',
-				fileList: []
+				fileList: [],
+				defaultTime: ''
 			}
+		},
+		onLoad() {
+			uni.getStorage({//获得保存在本地的用户信息
+				key: 'userInfo',  
+				success:(res) => {
+					this.res = res
+				}
+			})
 		},
 		methods: {
 			selectType() {
@@ -73,6 +82,14 @@
 			},
 			selectCertTime() {
 				this.certSelectTimeShow = true
+				let nowTime = new Date()
+				let year = nowTime.getFullYear()
+				let month = nowTime.getMonth()
+				let day = nowTime.getDate()
+				let hours = nowTime.getHours()
+				let minutes = nowTime.getMinutes()
+				const defaultTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes
+				this.defaultTime = defaultTime
 			},
 			getCertType(res) {
 				this.certName = res[0].label
@@ -94,11 +111,24 @@
 				console.log(obj)
 				this.certTime = obj.year + '-' + obj.month + '-' + obj.day
 			},
+			onUploaded(lists, name) {
+				this.fileList = lists;
+			},
 			submit() {
 				console.log(this.certType)
 				console.log(this.certName)
 				console.log(this.certTime)
 				console.log(this.fileList)
+				this.$http.post('/user/uploadCertificate', {
+					'userCertificate': this.certType,
+					'certificateLevel': this.certName
+				}, {
+					header: {
+						'Authentication': this.res.data.token
+					}
+				}).then((res) => {
+					console.log(res)
+				})
 			}
 		}
 	}

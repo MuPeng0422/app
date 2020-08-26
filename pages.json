@@ -4,15 +4,33 @@
 	},
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages	
 		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "主页"
-			}
-		},
-		{
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "消防中控室"
+			}
+		},
+		{
+			"path": "pages/enterprise/index/index",
+			"style": {
+				"navigationBarTitleText": "企业端主页"
+			}
+		},
+		{
+			"path": "pages/enterprise/signrecord/signrecord",
+			"style": {
+				"navigationBarTitleText": "考勤记录"
+			}
+		},
+		{
+			"path": "pages/enterprise/workapproval/workapproval",
+			"style": {
+				"navigationBarTitleText": "工作审批"
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "主页"
 			}
 		},
 		{

@@ -16,6 +16,7 @@
 </template>
 
 <script>
+	import { mapMutations } from 'vuex'; 
 	export default {
 		data() {
 			return {
@@ -24,6 +25,7 @@
 			}
 		},
 		methods: {
+			...mapMutations(['logout']),
 			changePwd() {
 				uni.navigateTo({
 				    url: '/pages/changePwd/changePwd'
@@ -39,6 +41,10 @@
 			},
 			signOut() {
 				console.log('您已退出')
+				this.logout()
+				uni.navigateTo({
+				    url: '/pages/login/login'
+				})
 			}
 		}
 	}

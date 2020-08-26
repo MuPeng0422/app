@@ -7,14 +7,14 @@
 			<swiper-item class="swiper-item leave">
 				<scroll-view scroll-y style="height: 100%;width: 100%;">
 					<view class="page-box">
-						<view class="form-item itemType">
+						<!-- <view class="form-item itemType">
 							<view class="label">
 								请假类型
 							</view>
 							<view class="type">
 								<u-input :border="true" type="select" :select-open="actionSheetShow" v-model="type" placeholder="请选择请假类型" @click="actionSheetShow = true"></u-input>
 							</view>
-						</view>
+						</view> -->
 						<view class="form-item">
 							<view class="label">
 								请假时间
@@ -61,11 +61,11 @@
 									始 {{ item.startTime }}
 								</view>
 								<view class="cell">
-									止 {{ item.startTime }}
+									止 {{ item.endTime }}
 								</view>
 							</view>
 							<view class="item-right">
-								{{ item.stutas }}
+								{{ item.applicationState }}
 							</view>
 						</view>
 					</view>
@@ -75,14 +75,14 @@
 		
 		<u-popup v-model="show" width="80%" height="80%" mode="center" :safe-area-inset-bottom="true" border-radius="14" :closeable="true">
 			<view class="popup-container">
-				<view class="col itemType">
+				<!-- <view class="col itemType">
 					<view class="label">
 						请假类型
 					</view>
 					<view class="type">
 						<u-input :border="true" type="text" v-model="popupType" placeholder="请选择请假类型" :disabled="true" />
 					</view>
-				</view>
+				</view> -->
 				<view class="col">
 					<view class="label">
 						请假时间
@@ -93,7 +93,7 @@
 								开始时间：
 							</view>
 							<view class="input">
-								<u-input v-model="popupStartTime" type="text" placeholder="请选择开始时间" :border="true" :disabled="true" />
+								<u-input v-model="popup.startTime" type="text" placeholder="请选择开始时间" :border="true" :disabled="true" />
 							</view>
 						</view>
 						<view class="time end-time">
@@ -101,7 +101,7 @@
 								结束时间：
 							</view>
 							<view class="input">
-								<u-input v-model="popupEndTime" type="text" placeholder="请选择结束时间" :border="true" :disabled="true" />
+								<u-input v-model="popup.endTime" type="text" placeholder="请选择结束时间" :border="true" :disabled="true" />
 							</view>
 						</view>
 					</view>
@@ -111,15 +111,15 @@
 						请假事由
 					</view>
 					<view class="reason">
-						<u-input v-model="popupReason" type="textarea" placeholder="请输入请假事由" height="100" :auto-height="true" :border="true" :disabled="true" />
+						<u-input v-model="popup.applicationCause" type="textarea" placeholder="请输入请假事由" height="100" :auto-height="true" :border="true" :disabled="true" />
 					</view>
 				</view>
 			</view>
 		</u-popup>
 		
 		<u-action-sheet :list="actionSheetList" v-model="actionSheetShow" @click="actionSheetCallback"></u-action-sheet>
-		<u-picker mode="time" v-model="startshow" :params="params" @confirm="getStartTime"></u-picker>
-		<u-picker mode="time" v-model="endshow" :params="params" @confirm="getEndTime"></u-picker>
+		<u-picker mode="time" v-model="startshow" :default-time="defaultTime" :params="params" @confirm="getStartTime"></u-picker>
+		<u-picker mode="time" v-model="endshow" :default-time="defaultTime" :params="params" @confirm="getEndTime"></u-picker>
 	</view>
 </template>
 
@@ -127,19 +127,17 @@
 	export default {
 		data() {
 			return {
+				res: {},
 				current: 0,
 				swiperCurrent: 0,
 				startshow: false,
 				endshow: false,
+				defaultTime: '',
 				type: '',
 				startTime: '',
 				endTime: '',
 				reason: '',
-				popupType: '事假',
-				popupStartTime: '2020-01-01 12:00:00',
-				popupEndTime: '2020-01-01 12:00:00',
-				popupReason: '你是煞笔',
-				actionSheetShow: false,
+				popup: {},
 				tablist: [
 					{
 						name: '我要请假'
@@ -150,16 +148,20 @@
 				],
 				actionSheetList: [
 					{
-						text: '事假'
+						text: '事假',
+						type: 1,
 					},
 					{
-						text: '病假'
+						text: '病假',
+						type: 2,
 					},
 					{
-						text: '丧假'
+						text: '丧假',
+						type: 3,
 					},
 					{
-						text: '其他'
+						text: '其他',
+						type: 4,
 					}
 				],
 				params: {
@@ -168,22 +170,30 @@
 					day: true,
 					hour: true,
 					minute: true,
-					second: true
+					second: false
 				},
-				lists: [
-					{
-						startTime: '2020-08-01 14:12:10',
-						endTime: '2020-08-02 14:12:10',
-						stutas: '已通过'
-					},
-					{
-						startTime: '2020-08-01 14:12:10',
-						endTime: '2020-08-02 14:12:10',
-						stutas: '已通过'
-					}
-				],
+				lists: [],
 				show: false
 			}
+		},
+		onLoad() {
+			uni.getStorage({
+				key: 'userInfo',
+				success: (res) => {
+					this.res = res.data
+					this.getLists()
+				}
+			})
+		},
+		onReady() {
+			let nowTime = new Date()
+			let year = nowTime.getFullYear()
+			let month = nowTime.getMonth()
+			let day = nowTime.getDate()
+			let hours = nowTime.getHours()
+			let minutes = nowTime.getMinutes()
+			const defaultTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes
+			this.defaultTime = defaultTime
 		},
 		methods: {
 			// tab栏切换
@@ -217,25 +227,68 @@
 				this.endshow = true
 			},
 			getStartTime(obj) {
-				this.startTime = obj.year + '年' + obj.month + '月' + obj.day + '日 ' + obj.hour + '时' + obj.minute + '分' + obj.second + '秒'
+				this.startTime = obj.year + '-' + obj.month + '-' + obj.day + ' ' + obj.hour + ':' + obj.minute
 			},
 			getEndTime(obj) {
-				this.endTime = obj.year + '年' + obj.month + '月' + obj.day + '日 ' + obj.hour + '时' + obj.minute + '分' + obj.second + '秒'
+				this.endTime = obj.year + '-' + obj.month + '-' + obj.day + ' ' + obj.hour + ':' + obj.minute
 			},
 			getItem(obj) {
 				console.log(obj)
 				this.show = true
+				this.popup = obj
+			},
+			getLists() {
+				this.$http.post('/application/findUserApply', {
+					'userId': this.res.userInfo.userId
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.code === 200) {
+						for (var i = 0; i < res.data.data.length; i++) {
+							if (res.data.data[i].applicationState === 0) {
+								res.data.data[i].applicationState = '待审核'
+							} else if (res.data.data[i].applicationState === 1) {
+								res.data.data[i].applicationState = '审核通过'
+							} else if (res.data.data[i].applicationState === 2) {
+								res.data.data[i].applicationState = '不通过'
+							}
+						}
+						this.lists = res.data.data
+					}
+				})
 			},
 			submit() {
-				console.log(this.type)
-				console.log(this.startTime)
-				console.log(this.endTime)
-				console.log(this.reason)
-				uni.showToast({
-					title: '申请成功',
-					icon: 'block',
-					duration: 1000
+				const data = {
+					'userId': this.res.userInfo.userId,
+					'userName': this.res.userInfo.username,
+					'startTime': this.startTime,
+					'endTime': this.endTime,
+					'applicationCause': this.reason,
+					'applicationType': 1
+				}
+				
+				this.$http.post('/application/add', data, {
+					header: {
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.code === 200) {
+						uni.showToast({
+							title: res.data.message,
+							icon: 'block',
+							duration: 1000,
+							success: (res) => {
+								setTimeout(() => {
+									uni.navigateBack()
+								}, 1000)
+							}
+						})
+					}
 				})
+				
 			}
 		}
 	}

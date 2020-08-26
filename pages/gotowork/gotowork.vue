@@ -1,18 +1,26 @@
 <template>
 	<view class="content">
 		<view class="position">
-			当前位置：{{address}}
+			当前位置：{{ location }}
+		</view>
+		<view class="sign-attendance">
+			<view class="label">
+				选择班次：
+			</view>
+			<view class="input">
+				<u-input v-model="attendance.label" type="select" :border="true" placeholder="请选择班次" @click="signAttendance = true" />
+			</view>
 		</view>
 		<view class="camera" @click="getCamera">
 			<u-avatar class="avatar-img" :src="src" size="200"></u-avatar>
 		</view>
 		<view class="timeBtn" @click="handliClickBtn">
-			{{date}}
+			{{ date }}
 		</view>
 		<u-popup v-model="show" width="80%" height="80%" mode="center" :safe-area-inset-bottom="true" border-radius="14">
 			<view class="popup">
 				<view class="title">
-					{{title}}
+					{{ title }}
 				</view>
 				<view class="checkBox">
 					<u-checkbox-group :wrap="true" size="40" @change="checkboxGroupChange">
@@ -21,7 +29,7 @@
 							v-model="item.checked"
 							v-for="(item, index) in list" :key="index" 
 							:name="item.name"
-						>{{item.name}}</u-checkbox>
+						>{{ item.name }}</u-checkbox>
 					</u-checkbox-group>
 				</view>
 				<view class="submitBtn">
@@ -29,6 +37,7 @@
 				</view>
 			</view>
 		</u-popup>
+		<u-action-sheet v-model="signAttendance" :list="schedulingList" @click="actionSheetCallback"></u-action-sheet>
 	</view>
 </template>
 
@@ -36,8 +45,10 @@
 	export default {
 		data() {
 			return {
-				address: '正在获取位置信息...',
+				res: {},
+				location: '正在获取位置信息...',
 				show: false,
+				signAttendance: false,
 				src: '',
 				date: new Date().toTimeString().slice(0, 5),
 				title: '交接事项',
@@ -57,13 +68,58 @@
 						checked: false,
 						disabled: false
 					}
-				]
+				],
+				attendance: {
+					label: '',
+					value: null
+				},
+				schedulingList: [],
+				goLongitude: '',
+				goLatitude: ''
 			}
 		},
 		onShow() {
 			this.getAuthorizeInfo();
 		},
+		onLoad() {
+			uni.getStorage({//获得保存在本地的用户信息
+				key: 'userInfo',  
+				success:(res) => {
+					this.res = res.data
+					this.getScheduling()
+				}
+			})
+		},
 		methods: {
+			getScheduling() {
+				this.$http.post('/scheduling/findUserScheduling', {
+					'userId': this.res.userInfo.userId
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if(res.data.code === 200) {
+						for (var i = 0; i < res.data.data.length; i++) {
+							let row = {}
+							row['value'] = res.data.data[i].id
+							row['text'] = res.data.data[i].schedulingName
+							row['starDate'] = res.data.data[i].starDate
+							row['stopDate'] = res.data.data[i].stopDate
+							row['starClockIn'] = res.data.data[i].starClockIn.substring(0, 5)
+							row['stopClockIn'] = res.data.data[i].stopClockIn.substring(0, 5)
+							this.schedulingList.push(row)
+						}
+					}
+				})
+			},
+			// 班次点击回调
+			actionSheetCallback(index) {
+				uni.hideKeyboard();
+				this.attendance.label = this.schedulingList[index].text;
+				this.attendance.value = this.schedulingList[index].value;
+			},
 			// 位置授权
 			getAuthorizeInfo(){
 				const that = this;
@@ -78,11 +134,14 @@
 					}
 				})
 			},
+			// 获取当前位置
 			getLocationInfo(){
 				var that = this
 				uni.getLocation({
-					type: 'wgs84',
+					type: 'gcj02',
 					success (res) {
+						that.goLongitude = res.longitude
+						that.goLatitude = res.latitude
 						var locationString = res.latitude + "," + res.longitude;
 						uni.request({
 							url: 'https://apis.map.qq.com/ws/geocoder/v1/',
@@ -93,15 +152,7 @@
 							method: 'get',
 							success: function (r) {
 								//输出一下位置信息
-								that.address = r.data.result.address
-								//r.data.result.address获得的就是用户的位置信息，将它保存到一个全局变量上
-								getApp().globalData.locationInfo = r.data.result.address;
-								//这步是将位置信息保存到本地缓存中，key = value的形式
-								try {
-									uni.setStorageSync('locationInfo', r.data.result.address)
-								} catch (e) {
-									console.log(e)
-								}
+								that.location = r.data.result.address
 							}
 						});
 					}
@@ -127,6 +178,7 @@
 					}
 				});
 			},
+			// 调用摄像头
 			getCamera() {
 				var that = this
 				uni.chooseImage({
@@ -148,14 +200,36 @@
 				console.log(e);
 			},
 			submit() {
-				uni.showToast({
-					title: '打卡成功',
-					icon: 'success',
-					success: () => {
-						setTimeout(() => {
-							this.show = false
-							uni.navigateBack()
-						}, 2000)
+				let data = {
+					userId: this.res.userInfo.userId,
+					type: 1,  // 1上班  2下班
+					schedulingId: this.attendance.value,
+					goLongitude: String(this.goLongitude),
+					goLatitude: String(this.goLatitude)
+				}
+				this.$http.post('/attendance/addUserAttendance', data, {
+					header: {
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					console.log(res)
+					if (res.data.code === 200) {
+						uni.showToast({
+							title: res.data.message,
+							icon: 'block',
+							duration: 1000,
+							success: () => {
+								this.show = false
+								uni.navigateBack();
+							}
+						})
+					} else {
+						this.show = false
+						uni.showToast({
+							title: res.data.message,
+							icon: 'none',
+							duration: 3000
+						})
 					}
 				})
 			}
@@ -169,6 +243,22 @@
 		height: 100%;
 		padding: 20rpx;
 		background-color: #fff;
+		
+		.position{
+			height: 100rpx;
+			display: flex;
+			align-items: center;
+		}
+		
+		.sign-attendance{
+			height: 100rpx;
+			display: flex;
+			align-items: center;
+			
+			.input{
+				flex: 1;
+			}
+		}
 		
 		.camera{
 			width: 300rpx;

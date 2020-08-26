@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "uview-ui": "^1.6.2"
+    "image-tools": "^1.2.1",
+    "luch-request": "^3.0.4",
+    "uview-ui": "^1.6.2",
+    "vuex-persistedstate": "^3.1.0"
   },
   "devDependencies": {
     "js-md5": "^0.7.3",

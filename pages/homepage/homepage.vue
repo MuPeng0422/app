@@ -7,15 +7,15 @@
 				</view>
 				<view class="avatar-text">
 					<view class="company">
-						{{userInfo.company}}
+						{{ userInfo.unitName }}
 					</view>
 					<view class="name">
-						<text>{{userInfo.name}}</text>
+						<text>{{userInfo.username}}</text>
 						<u-icon :name="name" size="40" color="#19be6b"></u-icon>
 					</view>
 				</view>
 				<view class="avatar-integral">
-					{{userInfo.integral}}积分
+					{{ integral }}积分
 				</view>
 			</view>
 			<view class="head-btns">
@@ -41,30 +41,29 @@
 		<view class="main">
 			<view class="swiper-tab">
 				<view>
-					<u-tabs-swiper ref="uTabs" :list="list" :bar-width="width" :current="current" @change="tabsChange" :is-scroll="false"
-					 swiperWidth="750"></u-tabs-swiper>
+					<u-tabs-swiper ref="uTabs" :list="list" :bold="false" :bar-width="width" :current="current" @change="tabsChange" :is-scroll="false" swiperWidth="750"></u-tabs-swiper>
 				</view>
 				<swiper class="swiper" :current="swiperCurrent" @transition="transition" @animationfinish="animationfinish">
 					<swiper-item class="swiper-item">
 						<scroll-view scroll-y class="swiper-item-scroll" @scrolltolower="reachBottom">
 							<view class="isLogin" v-if="isSignIn">
-								<view v-for="(item,index) in dataList[0]" class="dataList" :key="index">
-									<view class="dataListItem u-flex u-row-between" v-if="item.type === 0">
+								<view v-for="(item,index) in courseList" class="dataList" :key="index">
+									<view class="dataListItem u-flex u-row-between" v-if="item.coursePic !== ''">
 										<view class="item-img">
-											<u-image width="100%" height="100%" :src="item.src" :lazy-load="true">
+											<u-image width="100%" height="100%" :src="item.coursePic" :lazy-load="true">
 												<u-loading slot="loading"></u-loading>
 											</u-image>
 										</view>
 										<view class="item-info">
 											<view class="item-info-title">
-												{{item.text}}
+												{{item.courseName}}
 											</view>
 											<view class="item-info-bottom">
 												<view class="number">
-													{{item.number}}积分
+													{{item.courseScore}}积分
 												</view>
 												<view class="btn">
-													<u-button type="primary" size="mini" @click="startStudy">立即学习</u-button>
+													<u-button type="primary" size="mini" @click="startStudy(item)">立即学习</u-button>
 												</view>
 											</view>
 										</view>
@@ -72,11 +71,11 @@
 									<view class="dataListItem" v-else>
 										<view class="item-text">
 											<view class="item-text-top">
-												{{item.text}}
+												{{item.courseName}}
 											</view>
 											<view class="item-text-bottom">
 												<view class="number">
-													{{item.number}}积分
+													{{item.courseScore}}积分
 												</view>
 												<view class="btn">
 													<u-button type="primary" size="mini" @click="startStudy">立即学习</u-button>
@@ -85,25 +84,34 @@
 										</view>
 									</view>
 								</view>
-								<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2"></u-loadmore>
+								<u-empty text="数据为空" mode="data" v-if="courseList.length === 0"></u-empty>
+								<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2" v-if="courseList.length >= 3"></u-loadmore>
 							</view>
 							<view class="noLogin" v-else>
 								<view class="patchsign">
 									<text>需要打卡后才可以学习哦~</text>
-									<view class="btn">
-										<u-button type="primary" @click="goToWork">立即前往打卡</u-button>
-									</view>
 								</view>
 								<view class="scheduling">
 									<view class="scheduling-title">
 										我的排班
 									</view>
 									<view class="scheduling-list">
-										<view class="scheduling-list-item">
-											<view class="u-body-item u-flex u-border-bottom u-col-between u-p-t-0">
-												<image src="https://img11.360buyimg.com/n7/jfs/t1/94448/29/2734/524808/5dd4cc16E990dfb6b/59c256f85a8c3757.jpg" mode="aspectFill"></image>
-												<view class="u-body-item-title u-line-2">
-													瓶身描绘的牡丹一如你初妆，冉冉檀香透过窗心事我了然，宣纸上走笔至此搁一半
+										<view class="scheduling-list-item" v-for="(item, index) in schedulingList" :key="index">
+											<view class="scheduling-list-item-avatar">
+												<u-avatar :src="userInfo.src"></u-avatar>
+											</view>
+											<view class="scheduling-list-item-info">
+												<view class="list-item-info-top">
+													<text>{{ userInfo.username }}</text>
+													<text>{{ item.schedulingName }}</text>
+												</view>
+												<view class="list-item-info-bottom">
+													<view class="ClockIn">
+														上班时间：{{ item.starClockIn }}
+													</view>
+													<view class="ClockIn">
+														下班时间：{{ item.stopClockIn }}
+													</view>
 												</view>
 											</view>
 										</view>
@@ -116,7 +124,7 @@
 					<swiper-item class="swiper-item">
 						<scroll-view scroll-y class="swiper-item-scroll" @scrolltolower="reachBottom">
 							<view class="isLogin">
-								<view v-for="(item,index) in dataList[0]" class="dataList" :key="index">
+								<view v-for="(item,index) in dataList[1]" class="dataList" :key="index">
 									<view class="dataListItem u-flex u-row-between">
 										<view class="item-img">
 											<u-image width="100%" height="100%" :src="item.src" :lazy-load="true">
@@ -125,7 +133,7 @@
 										</view>
 										<view class="item-info">
 											<view class="item-info-title">
-												{{item.text}}
+												{{item.courseName}}
 											</view>
 											<view class="item-info-bottom">
 												<view class="number">
@@ -243,20 +251,18 @@
 </template>
 
 <script>
+	import { mapState, mapMutations } from 'vuex'; 
 	export default {
 		data() {
 			return {
+				res: null,
 				isSignIn: false,
 				text: '无头像',
 				imageURL: 'https://cdn.uviewui.com/uview/example/fade.jpg',
 				backgroundSize: '100% 100%',
 				name: 'checkmark-circle',
-				userInfo: {
-					src: '',
-					name: '',
-					company: '世纪金花(高新店)',
-					integral: '15603'
-				},
+				userInfo: {},
+				integral: 0,
 				current: 0,
 				swiperCurrent: 0,
 				width: '200',
@@ -268,80 +274,76 @@
 						name: '答题'
 					}
 				],
+				courseList: [],
 				dataList: [[], []],
-				data: [
-					{
-						src: 'https://cdn.uviewui.com/uview/example/fade.jpg',
-						number: 10,
-						type: 1,
-						text: '此组件内部使用uni-appbutton组件为基础utton组件为基础utton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					},
-					{
-						src: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1596689659408&di=8d200a54117ae26d52c6d7f75a4ea200&imgtype=0&src=http%3A%2F%2Fhbimg.b0.upaiyun.com%2F2a4ef1a24092aaa2211638e3e481b9ff454542d21a11-l6aRWH_fw658',
-						number: 10,
-						type: 0,
-						text: '此组件内部使用uni-appbutton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					},
-					{
-						src: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1596689659408&di=8d200a54117ae26d52c6d7f75a4ea200&imgtype=0&src=http%3A%2F%2Fhbimg.b0.upaiyun.com%2F2a4ef1a24092aaa2211638e3e481b9ff454542d21a11-l6aRWH_fw658',
-						number: 10,
-						type: 0,
-						text: '此组件内部使用uni-appbutton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					},
-					{
-						src: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1596689659408&di=8d200a54117ae26d52c6d7f75a4ea200&imgtype=0&src=http%3A%2F%2Fhbimg.b0.upaiyun.com%2F2a4ef1a24092aaa2211638e3e481b9ff454542d21a11-l6aRWH_fw658',
-						number: 10,
-						type: 0,
-						text: '此组件内部使用uni-appbutton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					},
-					{
-						src: 'https://cdn.uviewui.com/uview/example/fade.jpg',
-						number: 10,
-						type: 0,
-						text: '此组件内部使用uni-appbutton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					},
-					{
-						src: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1596689659408&di=8d200a54117ae26d52c6d7f75a4ea200&imgtype=0&src=http%3A%2F%2Fhbimg.b0.upaiyun.com%2F2a4ef1a24092aaa2211638e3e481b9ff454542d21a11-l6aRWH_fw658',
-						number: 10,
-						type: 0,
-						text: '此组件内部使用uni-appbutton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					},
-					{
-						src: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1596689659408&di=8d200a54117ae26d52c6d7f75a4ea200&imgtype=0&src=http%3A%2F%2Fhbimg.b0.upaiyun.com%2F2a4ef1a24092aaa2211638e3e481b9ff454542d21a11-l6aRWH_fw658',
-						number: 10,
-						type: 0,
-						text: '此组件内部使用uni-appbutton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					},
-					{
-						src: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1596689659408&di=8d200a54117ae26d52c6d7f75a4ea200&imgtype=0&src=http%3A%2F%2Fhbimg.b0.upaiyun.com%2F2a4ef1a24092aaa2211638e3e481b9ff454542d21a11-l6aRWH_fw658',
-						number: 10,
-						type: 0,
-						text: '此组件内部使用uni-appbutton组件为基础，除了开头中所说的增加的功能，另外暴露出来的props属性和官方组件的属性完全一致， uni-appbutton组件比较特殊'
-					}
-				],
+				data: [],
 				loadStatus: ['loadmore', 'loading', 'nomore'],
 				pageNo: 1,
 				pageSize: 10,
 				modelshow: false,
 				xbtitle: '您今日还有未完成任务，完成后才能打卡哦~',
-				timelong: '9/15'
+				timelong: '9/15',
+				schedulingList: []
 			}
 		},
 		onReady() {
 			this.getUserInfo()
+			this.getIntegral()
 			this.getStudyData()
+			this.getScheduling()
 		},
 		methods: {
-			getUserInfo() {
-				this.userInfo.src = this.$store.state.wxUserInfo.avatarUrl
-				this.userInfo.name = this.$store.state.wxUserInfo.nickName
+			...mapMutations(['login']),
+			setData(res) {
+				this.res = res
 			},
-			startStudy() {
+			setSignStatus(status) {
+				console.log(status)
+				this.isSignIn = status
+			},
+			getIntegral() {
+				this.$http.get('/findUserIntegral', {
+					params: {
+						'userId': this.res.data.user.userId,
+					},
+					header: {
+						'Authentication': this.res.data.token,
+					}
+				}).then((res) => {
+					this.integral = res.data.data
+				})
+			},
+			getUserInfo() {
+				this.userInfo = this.res.data.user
+				this.userInfo.src = '/static/default_avatar.jpg'
+			},
+			getScheduling() {
+				this.$http.post('/scheduling/findUserScheduling', {
+					'userId': this.res.data.user.userId
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.data.token
+					}
+				}).then((res) => {
+					if(res.data.code === 200) {
+						for (var i = 0; i < res.data.data.length; i++) {
+							res.data.data[i].starClockIn = res.data.data[i].starClockIn.substring(0, 5)
+							res.data.data[i].stopClockIn = res.data.data[i].stopClockIn.substring(0, 5)
+						}
+						this.schedulingList = res.data.data
+					}
+				})
+			},
+			startStudy(val) {
+				val.userId = this.res.data.user.userId
+				val.token = this.res.data.token
 				uni.navigateTo({
-				    url: '/pages/study/study'
+				    url: '/pages/study/study?data=' + encodeURIComponent(JSON.stringify(val))
 				})
 			},
 			next() {
+				this.modelshow = false
 				uni.navigateTo({
 				    url: '/pages/gooutwork/gooutwork'
 				})
@@ -351,9 +353,20 @@
 				    url: '/pages/answer/answer'
 				})
 			},
+			// 获取学习课程列表
 			getStudyData() {
-				this.dataList[this.current] = this.data
-				this.loadStatus.splice(this.current, 1, "loadmore")
+				this.$http.post('/course/findTodayCourse', {
+					'pageNum': this.pageNo,
+					'pageSize': this.pageSize
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.data.token,
+					}
+				}).then((res) => {
+					this.courseList = res.data.data.records
+					this.loadStatus.splice(this.current, 1, "loadmore")
+				})
 			},
 			// tab栏切换
 			// tabs通知swiper切换
@@ -380,18 +393,22 @@
 			reachBottom() {
 				this.loadStatus.splice(this.current,1,"loading")
 				setTimeout(() => {
-					this.pageNo++
-					this.getStudyData()
+					if (this.current === 0) {
+						this.pageNo++
+						this.getStudyData()
+					}
 				}, 1200)
 			},
 			handleClickBtn(type) {
-				console.log(type)
+				if (type === 'goToWork') {
+					uni.navigateTo({
+					    url: '/pages/gotowork/gotowork'
+					})
+					return
+				}
+				
 				if (this.isSignIn) {
-					if (type === 'goToWork') {
-						uni.navigateTo({
-						    url: '/pages/gotowork/gotowork'
-						})
-					} else if (type === 'goOutWork') {
+					if (type === 'goOutWork') {
 						this.modelshow = true
 					} else if(type === 'signRecord') {
 						uni.navigateTo({
@@ -515,29 +532,56 @@
 							}
 							
 							.scheduling{
-								padding: 50rpx 10rpx;
+								padding: 50rpx 20rpx;
 								
 								.scheduling-title{
 									font-size: 36rpx;
 									font-weight: bolder;
+									padding-bottom: 20rpx;
 								}
 								
-								.u-card-wrap {
-									background-color: $u-bg-color;
-									padding: 1px;
-								}
-								
-								.u-body-item {
-									font-size: 32rpx;
-									color: #333;
-									padding: 20rpx 10rpx;
-								}
-									
-								.u-body-item image {
-									width: 120rpx;
-									flex: 0 0 120rpx;
-									height: 120rpx;
-									border-radius: 50%;
+								.scheduling-list{
+									.scheduling-list-item{
+										height: 150rpx;
+										display: flex;
+										align-items: center;
+										background-color: #64EAA0;
+										margin-bottom: 20rpx;
+										
+										.scheduling-list-item-avatar{
+											width: 150rpx;
+											height: 150rpx;
+											display: flex;
+											align-items: center;
+											justify-content: center;
+										}
+										
+										.scheduling-list-item-info{
+											width: calc(100% - 130rpx);
+											height: 100%;
+											padding: 10rpx;
+											
+											.list-item-info-top{
+												height: 50%;
+												display: flex;
+												align-items: center;
+												
+												text{
+													padding-right: 20rpx;
+												}
+											}
+											
+											.list-item-info-bottom{
+												display: flex;
+												align-items: center;
+												height: 50%;
+												
+												.ClockIn{
+													padding-right: 20rpx;
+												}
+											}
+										}
+									}
 								}
 							}
 						}

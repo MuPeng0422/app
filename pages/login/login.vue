@@ -37,7 +37,7 @@
 </template>
 
 <script>
-	 import { mapMutations } from 'vuex'; 
+	import { mapState, mapMutations } from 'vuex'; 
 	export default {
 		data() {
 			return {
@@ -81,44 +81,28 @@
 				}
 			}
 		},
-		onLoad() {
-			if(this.$store.state.hasLogin) {
-				uni.navigateTo({
-				    url: '/pages/index/index'
-				})
-			}
-		},
 		onReady() {
 			this.$refs.uForm.setRules(this.rules)
 		},
 		methods: {
-			...mapMutations(['login', 'getUserInfo']),
+			...mapMutations(['login']),
 			codeChange(text) {
 				this.tips = text
 			},
 			getCode() {
 				if(this.$refs.uCode.canGetCode) {
-					// 模拟向后端请求验证码
-					uni.showLoading({
-						title: '正在获取验证码'
-					})
 					this.$refs.uCode.start()
 					setTimeout(() => {
-						uni.hideLoading()
 						// 这里此提示会被this.start()方法中的提示覆盖
-						// 通知验证码组件内部开始倒计时
-						uni.request({
-							url: 'http://192.168.0.34:9527/sendVerificationCode',
-							data: {
+						// 通知验证码组件内部开始倒计时						
+						this.$http.get('/sendVerificationCode', {
+							params: {
 								'phoneNum': this.form.phone
-							},
-							method: 'GET',
-							dataType: 'json',
-							success: (res) => {
-								this.$u.toast('验证码已发送')
 							}
+						}).then((res) => {
+							this.$u.toast('验证码已发送')
 						})
-					}, 2000);
+					}, 1000);
 				} else {
 					this.$u.toast('倒计时结束后再发送')
 				}
@@ -132,23 +116,31 @@
 			submit() {
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
-						uni.request({
-							url: 'http://192.168.0.34:9527/phoneLogin',
-							data: {
-								phoneNum: this.form.phone,
-								code: this.form.code
-							},
-							method: 'POST',
+						this.$http.post('/phoneLogin',{
+							'phoneNum': this.form.phone,
+							'code': this.form.code
+						}, {
 							header: {
 								'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
-							},
-							dataType: 'json',
-							success: (res) => {
-								console.log(res)
-								console.log('data', res.data) 
-								if(res.data.code === 200) {
-									// this.$store.commit('login', res.data.data)
-									this.login(res.data.data)
+							}
+						}).then((res) => {
+							if(res.data.code === 200) {
+								var a = '123'
+								var b = '1234'
+								console.log('相等', a === b)
+								this.$http.post('/user/findUserById', {
+									'userId': res.data.data.user.userId
+								}, {
+									header: {
+										'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+										'Authentication': res.data.data.token
+									}
+								}).then((result) => {
+									let data = {
+										'userInfo': result.data.data,
+										'token': res.data.data.token
+									}
+									this.login(data)
 									
 									// 判断用户是个人登录还是企业登录 0个人 1企业
 									if (res.data.data.user.state === 0) {
@@ -157,24 +149,13 @@
 										})
 									} else {
 										uni.navigateTo({
-										    url: '/pages/index/index'
+										    url: '/pages/enterprise/index/index'
 										})
 									}
-									
-									uni.getUserInfo({
-										success: (res) => {
-											console.log(res)
-											// this.$store.commit('getUserInfo', res.userInfo)
-											this.getUserInfo(res.userInfo)
-										}
-									})
-								} else {
-									uni.showToast({
-										title: res.data.message,
-										icon: 'none',
-										duration: 2000
-									})
-								}
+									this.$refs.uCode.reset()
+								})
+							} else {
+								this.$u.toast(res.data.message)
 							}
 						})
 					} else {
@@ -199,6 +180,7 @@
 <style lang="scss" scoped>
 	.content {
 		width: 100%;
+		height: 100%;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
