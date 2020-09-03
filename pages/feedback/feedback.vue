@@ -15,7 +15,7 @@
 						问题截图
 					</view>
 					<view class="input">
-						<u-upload ref="uUpload" :action="action" :file-list="fileList" :auto-upload="false" max-count="3"></u-upload>
+						<u-upload ref="uUpload" :file-list="fileList"  :auto-upload="false" :show-progress="false" max-count="1" upload-text="上传照片"  @on-list-change="onUploaded"></u-upload>
 					</view>
 				</view>
 			</view>
@@ -30,11 +30,59 @@
 	export default {
 		data() {
 			return {
+				res: {},
 				question: '',
 				placeholder: '请简单的描述您遇到的问题或者对我们的建议~',
-				action: '',
 				fileList: []
 			}
+		},
+		onLoad() {
+			uni.getStorage({
+				key: 'userInfo',
+				success: (res) => {
+					this.res = res.data
+				}
+			})
+		},
+		methods: {
+			onUploaded(lists, name) {
+				this.fileList = lists;
+			},
+			submit() {
+				if (this.question === '') {
+					this.$u.toast('请简单的描述您遇到的问题或者对我们的建议')
+					return false
+				}
+				
+				if (this.fileList.length === 0) {
+					this.$u.toast('请上传截图')
+					return false
+				}
+				
+				
+				let data = {
+					'userId': this.res.userInfo.userId,
+					'userName': this.res.userInfo.realName,
+					'userPhone': this.res.userInfo.mobile,
+					'unitId': this.res.userInfo.unitId,
+					'content': this.question
+				}
+				
+				uni.uploadFile({
+					url: this.$http.config.baseURL + '/user/addFeedBack',    
+					filePath: this.fileList[0].url,
+					name: 'feedBackPic',
+					header: {
+						'Content-Type': 'multipart/form-data',
+						'Authentication': this.res.token,
+					},
+					formData: data,
+					success: (res) =>{
+						let data = JSON.parse(res.data)
+						console.log(data)
+					}
+				})
+			} 
 		}
 	}
 </script>

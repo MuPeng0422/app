@@ -11,7 +11,6 @@
 					</view>
 					<view class="name">
 						<text>{{userInfo.realName}}</text>
-						<u-icon :name="name" size="40" color="#19be6b"></u-icon>
 					</view>
 				</view>
 			</view>
@@ -66,7 +65,7 @@
 				imageURL: 'https://cdn.uviewui.com/uview/example/fade.jpg',
 				backgroundSize: '100% 100%',
 				name: 'checkmark-circle',
-				userInfo: {},
+				res: {},
 				schedulingList: [
 					{
 						type: 0,
@@ -128,36 +127,25 @@
 			}
 		},
 		onReady() {
-			this.getUserInfo()
+			uni.getStorage({
+				key: 'userInfo',
+				success: (res) => {
+					this.res = res.data
+				}
+			})
 		},
 		methods: {
 			...mapMutations(['login']),
-			getUserInfo() {
-				uni.getStorage({ // 获得保存在本地的用户信息
-					key: 'userInfo',  
-					success:(res) => {
-						console.log(res)
-						this.userInfo = res.data.user
-						
-						console.log(this.userInfo)
-						
-						// this.$http.post('/scheduling/findUserScheduling', {
-						// 	'userId': res.data.user.userId
-						// }, {
-						// 	header: {
-						// 		'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
-						// 		'Authentication': res.data.token
-						// 	}
-						// }).then((res) => {
-						// 	if(res.data.code === 200) {
-						// 		for (var i = 0; i < res.data.data.length; i++) {
-						// 			res.data.data[i].starClockIn = res.data.data[i].starClockIn.substring(0, 5)
-						// 			res.data.data[i].stopClockIn = res.data.data[i].stopClockIn.substring(0, 5)
-						// 		}
-						// 		this.schedulingList = res.data.data
-						// 	}
-						// })
+			getScheduling() {
+				this.$http.post('/scheduling/findUserSchedulingBydeptId', {
+					'unitId': this.res.userInfo.unitId
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
 					}
+				}).then((res) => {
+					console.log(res)
 				})
 			},
 			handleClickBtn(type) {

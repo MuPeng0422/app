@@ -12,7 +12,7 @@
   "dependencies": {
     "image-tools": "^1.2.1",
     "luch-request": "^3.0.4",
-    "uview-ui": "^1.6.2",
+    "uview-ui": "^1.6.5",
     "vuex-persistedstate": "^3.1.0"
   },
   "devDependencies": {

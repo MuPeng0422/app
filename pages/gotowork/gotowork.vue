@@ -42,6 +42,7 @@
 </template>
 
 <script>
+	import { mapMutations } from 'vuex';
 	export default {
 		data() {
 			return {
@@ -70,6 +71,7 @@
 					}
 				],
 				attendance: {
+					attId: null,
 					label: '',
 					value: null
 				},
@@ -91,9 +93,11 @@
 			})
 		},
 		methods: {
+			...mapMutations(['login']),
 			getScheduling() {
 				this.$http.post('/scheduling/findUserScheduling', {
-					'userId': this.res.userInfo.userId
+					'userId': this.res.userInfo.userId,
+					'state': 0
 				}, {
 					header: {
 						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
@@ -109,6 +113,7 @@
 							row['stopDate'] = res.data.data[i].stopDate
 							row['starClockIn'] = res.data.data[i].starClockIn.substring(0, 5)
 							row['stopClockIn'] = res.data.data[i].stopClockIn.substring(0, 5)
+							row['attId'] = res.data.data[i].attId
 							this.schedulingList.push(row)
 						}
 					}
@@ -119,6 +124,7 @@
 				uni.hideKeyboard();
 				this.attendance.label = this.schedulingList[index].text;
 				this.attendance.value = this.schedulingList[index].value;
+				this.attendance.attId = this.schedulingList[index].attId;
 			},
 			// 位置授权
 			getAuthorizeInfo(){
@@ -142,6 +148,7 @@
 					success (res) {
 						that.goLongitude = res.longitude
 						that.goLatitude = res.latitude
+							
 						var locationString = res.latitude + "," + res.longitude;
 						uni.request({
 							url: 'https://apis.map.qq.com/ws/geocoder/v1/',
@@ -157,6 +164,7 @@
 						});
 					}
 				});
+				
 			},
 	
 			// 再次获取授权
@@ -189,7 +197,45 @@
 				})
 			},
 			handliClickBtn() {
-				this.show = true
+				console.log(this.src)
+				console.log(this.res.token)
+				console.log(this.res.userInfo.userId)
+				if (this.res.userInfo.userpicPath === undefined) {
+					uni.showToast({
+						title: '请先传个人照片再打卡',
+						icon: 'none',
+						duration: 2000,
+						success: () => {
+							setTimeout((res) => {
+								uni.navigateTo({
+									url: '../userPhoto/userPhoto'
+								})
+							}, 1000)
+						}
+					})
+					return false
+				}
+				uni.uploadFile({
+					url: this.$http.config.baseURL + '/attendance/uploadFace',    
+					filePath: this.src,
+					name: 'userCertificate',
+					header: {
+						'Content-Type': 'multipart/form-data',
+						'Authentication': this.res.token,
+					},
+					formData: {
+						'userId': this.res.userInfo.userId
+					},
+					success: (res) =>{
+						console.log(res)
+						let data = JSON.parse(res.data)
+						console.log(data)
+						this.$u.toast(data.data.msg)
+						if (data.data.code === '1') {
+							this.show = true
+						}
+					}
+				})
 			},
 			// 选中某个复选框时，由checkbox时触发
 			checkboxChange(e) {
@@ -205,8 +251,10 @@
 					type: 1,  // 1上班  2下班
 					schedulingId: this.attendance.value,
 					goLongitude: String(this.goLongitude),
-					goLatitude: String(this.goLatitude)
+					goLatitude: String(this.goLatitude),
+					id: this.attendance.attId
 				}
+				console.log(data)
 				this.$http.post('/attendance/addUserAttendance', data, {
 					header: {
 						'Authentication': this.res.token
@@ -220,7 +268,32 @@
 							duration: 1000,
 							success: () => {
 								this.show = false
-								uni.navigateBack();
+								
+								this.$http.post('/user/findUserById', {
+									'userId': this.res.userInfo.userId
+								}, {
+									header: {
+										'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+										'Authentication': this.res.token
+									}
+								}).then((result) => {
+									
+									let data = {
+										'userInfo': result.data.data,
+										'token': this.res.token
+									}
+									this.login(data)
+									
+									// 返回刷新
+									
+									let pages = getCurrentPages(); // 当前页面
+									let beforePage = pages[pages.length - 2]; // 前一个页面
+									uni.navigateBack({
+									     success: function() {
+									         beforePage.onLoad(); // 执行前一个页面的onLoad方法
+									     }
+									 });
+								})
 							}
 						})
 					} else {

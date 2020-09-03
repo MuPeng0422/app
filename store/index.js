@@ -11,7 +11,6 @@ const store = new Vuex.Store({
     },  
     mutations: {
         login(state, provider) {// 改变登录状态
-			console.log(provider)
 			state.token = provider.token||''
             state.hasLogin = true  
             state.userInfo = provider.userInfo

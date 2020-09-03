@@ -29,31 +29,16 @@
 				</view>
 				<view class="item-content">
 					<view class="item-content-avatar1">
-						<u-avatar :src="item.avatar"></u-avatar>
+						<u-avatar :src="item.heardPic"></u-avatar>
 					</view>
 					<view class="item-content-info">
-						<view class="item-content-info-t">
-							<view class="item-content-info-t-l">
-								<view class="name-attendance">
-									<view class="name">
-										{{ item.username }}
-									</view>
-									<view class="attendance">
-										{{ item.attendance }}
-									</view>
-								</view>
-							</view>
-							<view class="item-content-info-t-r">
-								上班时间：{{ item.sbTime }}
-							</view>
+						<view class="item-content-info-name">
+							<span>{{ item.name }}</span>
+							<span>{{ item.schedulName }}</span>
 						</view>
-						<view class="item-content-info-b">
-							<view class="item-content-info-t-l">
-								{{ item.cert }}
-							</view>
-							<view class="item-content-info-t-r">
-								下班时间：{{ item.xbTime }}
-							</view>
+						<view class="item-content-info-time">
+							<span>上班时间：{{ item.sbtime }}</span>
+							<span>下班时间：{{ item.xbtime }}</span>
 						</view>
 					</view>
 				</view>
@@ -70,88 +55,139 @@
         },
         data() {
 			return {
-				signList: [
-					{
-						num: '25',
-						name: '正常'
-					},
-					{
-						num: '1',
-						name: '请假'
-					},
-					{
-						num: '3',
-						name: '缺勤'
-					}
-				],
+				res: {},
+				signList: [],
 				show: false,
-				selected: [
-					{
-						date: '2020-08-01',
-						data: [
-							{
-								id: 0,
-								avatar: '/static/default_avatar.jpg',
-								username: '李霜双',
-								attendance: '白班',
-								sbTime: '08:54',
-								xbTime: '未打卡',
-								cert: '中级消防证书'
-							},
-							{
-								id: 1,
-								avatar: '/static/default_avatar.jpg',
-								username: '李丹',
-								attendance: '白班',
-								sbTime: '未打卡',
-								xbTime: '未打卡',
-								cert: '中级消防证书'
-							}
-						]
-					}, {
-						date: '2020-08-05',
-						data: [
-							{
-								id: 0,
-								avatar: '',
-								username: '王鑫',
-								attendance: '白班',
-								sbTime: '08:54',
-								xbTime: '未打卡',
-								cert: '中级消防证书'
-							},
-							{
-								id: 1,
-								avatar: '',
-								username: '卫振鹏',
-								attendance: '白班',
-								sbTime: '未打卡',
-								xbTime: '未打卡',
-								cert: '中级消防证书'
-							}
-						]
-					}
-				],
+				selected: [],
 				date: '',
 				data: []
 			}
 		},
+		onLoad() {
+			uni.getStorage({
+				key: 'userInfo',
+				success: (res) => {
+					this.res = res.data
+					let date = new Date()
+					this.year = date.getFullYear()
+					this.month = date.getMonth() + 1
+					this.getAttendance(this.year, this.month)
+				}
+			})
+		},
         methods: {
+			getAttendance(year, month) {
+				
+				this.$http.get('/attendance/currentByDayUnitId', {
+					params: {
+						'unitId': this.res.userInfo.unitId,
+						'year': year,
+						'month': month
+					},
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.code === 200) {
+						if (res.data.data.length > 0) {
+							this.signList = [							
+								{
+									num: res.data.data[res.data.data.length - 1].addenceRight,
+									name: '正常'
+								},
+								{
+									num: res.data.data[res.data.data.length - 1].leave,
+									name: '请假'
+								},
+								{
+									num: res.data.data[res.data.data.length - 1].absentWork,
+									name: '缺勤'
+								}
+							]
+							for (var i = 0; i < res.data.data.length; i++) {
+								const row = {
+									date: '',
+									info: '',
+									data: []
+								}
+								
+								if (res.data.data[i].Status === 1) {
+									
+								} else if (res.data.data[i].Status === 0) {
+									row.date = res.data.data[i].date
+									row.info = ''
+									for (var j = 0; j < res.data.data[i].work.length; j++) {
+										const item = {
+											heardPic: res.data.data[i].work[j].heardPic,
+											name: res.data.data[i].work[j].name,
+											schedulName: res.data.data[i].work[j].schedulName,
+											sbtime: '',
+											xbtime: ''
+										}
+										
+										if (res.data.data[i].work[j].downWork === '未打卡') {
+											item.xbtime = '未打卡'
+										} else {
+											const downWork = res.data.data[i].work[j].downWork.split(' ')
+											item.xbtime = downWork[1]
+										}
+										
+										if (res.data.data[i].work[j].upWork === '未打卡') {
+											item.sbtime = '未打卡'
+										} else {
+											const upWork = res.data.data[i].work[j].upWork.split(' ')
+											item.sbtime = upWork[1]
+										}
+										row.data.push(item)
+									}
+								} else if (res.data.data[i].Status === 2) {
+									row.date = res.data.data[i].date
+									row.info = '异常'
+									for (var j = 0; j < res.data.data[i].work.length; j++) {
+										const item = {
+											heardPic: res.data.data[i].work[j].heardPic,
+											name: res.data.data[i].work[j].name,
+											schedulName: res.data.data[i].work[j].schedulName,
+											sbtime: '',
+											xbtime: ''
+										}
+										
+										if (res.data.data[i].work[j].downWork === '未打卡') {
+											item.xbtime = '未打卡'
+										} else {
+											const downWork = res.data.data[i].work[j].downWork.split(' ')
+											item.xbtime = downWork[1]
+										}
+										
+										if (res.data.data[i].work[j].upWork === '未打卡') {
+											item.sbtime = '未打卡'
+										} else {
+											const upWork = res.data.data[i].work[j].upWork.split(' ')
+											item.sbtime = upWork[1]
+										}
+										row.data.push(item)
+									}
+								}
+								this.selected.push(row)
+							}
+						}
+					}
+				})
+			},
+			monthSwitch(e) {
+				this.show = false
+				this.getAttendance(e.year, e.month)
+			},
             change(e) {
 				this.show = true
 				this.date = e.extraInfo.date
-				this.data = e.extraInfo.data
-            },
-			handleClickSign() {
-				uni.navigateTo({
-				    url: '/pages/patchSign/patchSign'
-				})
-			},
-			goAddSignRecord() {
-				uni.navigateTo({
-				    url: '/pages/patchsignrecord/patchsignrecord'
-				})
-			}
+				if (e.extraInfo.data === undefined) {
+					this.show = false
+				} else {
+					this.data = e.extraInfo.data
+				}
+            }
         }
     };
 </script>
@@ -227,44 +263,23 @@
 						width: calc(100% - 150rpx);
 						padding: 20rpx;
 						display: flex;
-						flex-direction: column;
-						justify-content: space-around;
+						align-items: center;
+						justify-content: space-between;
 						
-						.item-content-info-t{
+						.item-content-info-name{
+							width: 150rpx;
 							display: flex;
 							justify-content: space-between;
-							
-							.item-content-info-t-l{
-								width: 50%;
-								display: flex;
-								justify-content: space-between;
-								
-								.name-attendance{
-									width: 70%;
-									display: flex;
-									justify-content: space-between;
-								}
-							}
-							
-							.item-content-info-t-r{
-								width: 50%;
-								padding-left: 20rpx;
-							}
 						}
 						
-						.item-content-info-b{
+						.item-content-info-time{
+							padding-left: 50rpx;
+							flex: 1;
 							display: flex;
-							justify-content: space-between;
-							
-							.item-content-info-t-l{
-								width: 50%;
-							}
-							
-							.item-content-info-t-r{
-								width: 50%;
-								padding-left: 20rpx;
-							}
+							flex-direction: column;
+							justify-content: space-around;
 						}
+						
 					}
 				}
 			}

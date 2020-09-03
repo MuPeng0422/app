@@ -14,6 +14,7 @@
 			</view>
 			<u-cell-group>
 				<u-cell-item icon="account-fill" title="个人信息" @click="goUserInfo"></u-cell-item>
+				<u-cell-item icon="photo" title="个人照片" @click="goPhoto"></u-cell-item>
 				<u-cell-item icon="bookmark-fill" title="个人证书" @click="goPersonalCert"></u-cell-item>
 				<u-cell-item icon="file-text-fill" title="学习报告" @click="goStudyReport"></u-cell-item>
 				<u-cell-item icon="setting-fill" title="系统设置" @click="goSystem"></u-cell-item>
@@ -72,6 +73,7 @@
 							success: (res) =>{
 								let data = JSON.parse(res.data)
 								if (data.code === 200){
+									this.$u.toast(data.message)
 									this.$http.post('/user/findUserById', {
 										'userId': this.res.userInfo.userId
 									}, {
@@ -80,7 +82,7 @@
 											'Authentication': this.res.token
 										}
 									}).then((result) => {
-										this.$u.toast('修改头像成功！')
+										
 										console.log('result', result)
 										let data = {
 											'userInfo': result.data.data,
@@ -98,8 +100,6 @@
 						})
 					}
 				})
-				
-				
 			},
 			goUserInfo() {
 				uni.navigateTo({
@@ -119,6 +119,11 @@
 			goSystem() {
 				uni.navigateTo({
 				    url: '/pages/system/system'
+				})
+			},
+			goPhoto() {
+				uni.navigateTo({
+					url: '/pages/userPhoto/userPhoto'
 				})
 			}
 		}

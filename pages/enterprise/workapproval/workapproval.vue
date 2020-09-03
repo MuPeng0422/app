@@ -7,44 +7,80 @@
 			<swiper-item class="swiper-item">
 				<scroll-view scroll-y style="height: 100%;width: 100%;">
 					<view class="page-box">
-						<view class="pending-approval">
-							<view class="pending-approval-item" v-for="(item, index) in datalist" :key="index">
+						<view class="pending-approval  u-margin-top-20" v-if="pending === true">
+							<view class="pending-approval-item" v-for="(item, index) in pendinglist" :key="index">
 								<view class="pending-approval-item-avatar">
 									<view class="item-avatar">
 										<view class="avatar">
-											<u-avatar :src="item.src" size="60" mode="square"></u-avatar>
+											<u-avatar :src="item.userPic" size="60" mode="square"></u-avatar>
 										</view>
 										<view class="username">
-											{{ item.username }}
+											{{ item.userName }}
 										</view>
 									</view>
 								</view>
 								<view class="pending-approval-info">
 									<view class="pending-approval-info-reason">
-										{{ item.reason }}
+										{{ item.applicationCause }}
 									</view>
 									<view class="pending-approval-info-btn">
-										<u-button type="primary" size="mini" @click="handleClickItem(item)">待处理</u-button>
+										<u-button :type="item.type" size="mini" @click="handleClickItem(item)">{{ item.status }}</u-button>
 									</view>
+								</view>
+							</view>
+						</view>
+						<view class="pending-approval u-margin-top-20" v-else>
+							<view class="empty">
+								<view>
+									<u-empty text="暂无数据" mode="data"></u-empty>
 								</view>
 							</view>
 						</view>
 					</view>
 				</scroll-view>
 			</swiper-item>
-			<swiper-item class="swiper-item ">
+			<swiper-item class="swiper-item">
 				<scroll-view scroll-y style="height: 100%;width: 100%;" @scrolltolower="reachBottom">
 					<view class="page-box">
 						<view class="pending-search">
 							<view class="pending-search-box">
 								<view class="search-input">
-									<u-input v-model="search.startTime" height="60" placeholder="开始时间" type="text" :border="true" @click="selectStartTime"/>
+									<u-input v-model="search.startTime" height="60" placeholder="开始时间" type="text" :border="true" :disabled="true" @click="selectStartTime"/>
 								</view>
 								<view class="search-input">
-									<u-input v-model="search.endTime" height="60" placeholder="结束时间" type="text" :border="true" @click="selectEndTime"/>
+									<u-input v-model="search.endTime" height="60" placeholder="结束时间" type="text" :border="true" :disabled="true" @click="selectEndTime"/>
 								</view>
 								<view class="search-btn">
-									<u-button type="success" :custom-style="customStyle" size="mini">搜索</u-button>
+									<u-button type="success" :custom-style="customStyle" size="mini" @click="handleClickSearch">搜索</u-button>
+								</view>
+							</view>
+						</view>
+						<view class="pending-search-list" v-if="alreadyList.length > 0">
+							<view class="pending-approval-item" v-for="(item, index) in alreadyList" :key="index">
+								<view class="pending-approval-item-avatar">
+									<view class="item-avatar">
+										<view class="avatar">
+											<u-avatar :src="item.userPic" size="60" mode="square"></u-avatar>
+										</view>
+										<view class="username">
+											{{ item.userName }}
+										</view>
+									</view>
+								</view>
+								<view class="pending-approval-info">
+									<view class="pending-approval-info-reason">
+										{{ item.applicationCause }}
+									</view>
+									<view class="pending-approval-info-btn">
+										<u-button :type="item.type" size="mini" @click="handleClickItem(item)">{{ item.status }}</u-button>
+									</view>
+								</view>
+							</view>
+						</view>
+						<view class="pending-approval" v-else>
+							<view class="empty">
+								<view>
+									<u-empty text="暂无数据" mode="data"></u-empty>
 								</view>
 							</view>
 						</view>
@@ -83,15 +119,15 @@
 						请假事由
 					</view>
 					<view class="reason">
-						<u-input v-model="popup.reason" type="textarea" height="100" :auto-height="true" :border="true" :disabled="true" />
+						<u-input v-model="popup.applicationCause" type="textarea" height="100" :auto-height="true" :border="true" :disabled="true" />
 					</view>
 				</view>
 				<view class="submitBtn">
 					<view class="btn">
-						<u-button type="error">驳回</u-button>
+						<u-button type="error" @click="handleClickApproval(popup, 2)">驳回</u-button>
 					</view>
 					<view class="btn">
-						<u-button type="primary">通过</u-button>
+						<u-button type="primary" @click="handleClickApproval(popup, 1)">通过</u-button>
 					</view>
 				</view>
 			</view>
@@ -127,6 +163,10 @@
 						name: '已处理'
 					}
 				],
+				type: '',
+				status: '',
+				typeList: ['primary', 'success', 'warning'],
+				statusList: ['待处理', '已通过', '已驳回'],
 				actionSheetList: [
 					{
 						text: '事假',
@@ -154,22 +194,10 @@
 					second: false
 				},
 				lists: [],
-				datalist: [
-					{
-						src: '',
-						username: '刘大招',
-						reason: '身体不舒服身体不舒服身体不舒服身体不舒服身体不舒服身体不舒服',
-						startTime: '2020年7月6日 20时7分6秒',
-						endTime: '2020年7月6日 20时7分6秒'
-					},
-					{
-						src: '',
-						username: '刘大招',
-						reason: '身体不舒服',
-						startTime: '2020年7月6日 20时7分6秒',
-						endTime: '2020年7月6日 20时7分6秒'
-					}
-				],
+				pending: false,
+				already: false,
+				pendinglist: [],
+				alreadyList: [],
 				show: false
 			}
 		},
@@ -178,20 +206,124 @@
 				key: 'userInfo',
 				success: (res) => {
 					this.res = res.data
+					console.log(this.res)
+					this.getDataList()
 				}
 			})
 		},
 		onReady() {
 			let nowTime = new Date()
 			let year = nowTime.getFullYear()
-			let month = nowTime.getMonth()
+			let month = nowTime.getMonth() + 1
 			let day = nowTime.getDate()
-			let hours = nowTime.getHours()
-			let minutes = nowTime.getMinutes()
-			const defaultTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes
+			const defaultTime = year + '-' + month + '-' + day
 			this.defaultTime = defaultTime
 		},
 		methods: {
+			getDataList() {
+				this.$http.post('/application/findApplyByUnitId', {
+					'unitId': this.res.userInfo.unitId
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.code === 200) {
+						for (var i = 0; i < res.data.data.length; i++) {
+							if (res.data.data[i].applicationState === 0) {
+								this.type = this.typeList[0]
+								this.status = this.statusList[0]
+								res.data.data[i].type = this.type
+								res.data.data[i].status = this.status
+								this.pendinglist.push(res.data.data[i])
+							} else if (res.data.data[i].applicationState === 1) {
+								this.type = this.typeList[1]
+								this.status = this.statusList[1]
+								res.data.data[i].type = this.type
+								res.data.data[i].status = this.status
+								this.alreadyList.push(res.data.data[i])
+							} else {
+								this.type = this.typeList[2]
+								this.status = this.statusList[2]
+								res.data.data[i].type = this.type
+								res.data.data[i].status = this.status
+								this.alreadyList.push(res.data.data[i])
+							}
+						}
+						
+						if (this.pendinglist.length > 0) {
+							this.pending = true
+						}
+						
+						if (this.alreadyList.length > 0) {
+							this.already = true
+						}
+					} else {
+						this.$u.toast(res.data.message)
+					}
+				})
+			},
+			handleClickApproval(popup, index) {
+				this.$http.post('/application/audit', {
+					'id': popup.id,
+					'applicationState': index 
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.code === 200) {
+						this.show = false
+						let pages = getCurrentPages(); // 当前页面
+						console.log(pages)
+						let beforePage = pages[pages.length - 2]; // 前一个页面
+						console.log(beforePage)
+						// uni.navigateBack({
+						//     success: function() {
+						//         beforePage.onLoad(); // 执行前一个页面的onLoad方法
+						//     }
+						// });
+					}
+				})
+			},
+			handleClickSearch() {
+				this.$http.post('/application/findApplyByUnitId', {
+					'unitId': this.res.userInfo.unitId,
+					'startTime': this.search.startTime,
+					'endTime': this.search.endTime
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					console.log(res)
+					if (res.data.code === 200) {
+						this.alreadyList = []
+						if (res.data.code === 200) {
+							for (var i = 0; i < res.data.data.length; i++) {
+								if (res.data.data[i].applicationState === 1) {
+									this.type = this.typeList[1]
+									this.status = this.statusList[1]
+									res.data.data[i].type = this.type
+									res.data.data[i].status = this.status
+									this.alreadyList.push(res.data.data[i])
+								} else {
+									this.type = this.typeList[2]
+									this.status = this.statusList[2]
+									res.data.data[i].type = this.type
+									res.data.data[i].status = this.status
+									this.alreadyList.push(res.data.data[i])
+								}
+							}	
+						} else {
+							this.$u.toast(res.data.message)
+						}
+					}
+				})
+			},
 			// tab栏切换
 			// tabs通知swiper切换
 			tabsChange(index) {
@@ -223,17 +355,15 @@
 				this.endshow = true
 			},
 			getStartTime(obj) {
-				this.startTime = obj.year + '-' + obj.month + '-' + obj.day + ' ' + obj.hour + ':' + obj.minute
+				this.search.startTime = obj.year + '-' + obj.month + '-' + obj.day
 			},
 			getEndTime(obj) {
-				this.endTime = obj.year + '-' + obj.month + '-' + obj.day + ' ' + obj.hour + ':' + obj.minute
+				console.log(obj)
+				this.search.endTime = obj.year + '-' + obj.month + '-' + obj.day
 			},
 			handleClickItem(row) {
 				this.show = true
-				this.popup.startTime = row.startTime
-				this.popup.endTime = row.endTime
-				this.popup.reason = row.reason
-				console.log(row)
+				this.popup = row
 			}
 		}
 	}
@@ -249,15 +379,19 @@
 			background-color: #FFFFFF;
 			
 			.page-box{
+				height: 100%;
+				
 				.pending-approval{
-					border-top: 1rpx solid #999999;
-					margin: 20rpx 0;
 					
 					.pending-approval-item{
 						height: 150rpx;
 						display: flex;
 						justify-content: space-between;
-						border-bottom: 1rpx solid #999999;
+						border-bottom: 1rpx solid #c8c7cc;
+						
+						&:first-child {
+							border-top: 1rpx solid #c8c7cc;
+						}
 						
 						.pending-approval-item-avatar{
 							width: 200rpx;
@@ -292,6 +426,13 @@
 							}
 						}
 					}
+					
+					.empty{
+						padding-top: 100rpx;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					}
 				}
 				
 				.pending-search{
@@ -306,6 +447,53 @@
 						}
 						.search-btn{
 							height: 60rpx;
+						}
+					}
+				}
+				
+				.pending-search-list{
+					
+					.pending-approval-item{
+						height: 150rpx;
+						display: flex;
+						justify-content: space-between;
+						border-bottom: 1rpx solid #c8c7cc;
+						
+						&:first-child {
+							border-top: 1rpx solid #c8c7cc;
+						}
+						
+						.pending-approval-item-avatar{
+							width: 200rpx;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							
+							.item-avatar{
+								.avatar{
+									text-align: center;
+								}
+							}
+						}
+						
+						.pending-approval-info{
+							width: calc(100% - 200rpx);
+							padding: 40rpx 40rpx 40rpx 0rpx;
+							display: flex;
+							align-items: center;
+							justify-content: space-between;
+							
+							.pending-approval-info-reason{
+								width: calc(100% - 100rpx);
+								padding-right: 20rpx;
+								overflow: hidden;
+								text-overflow:ellipsis;
+								white-space: nowrap;
+							}
+							
+							.pending-approval-info-btn{
+								width: 100rpx;
+							}
 						}
 					}
 				}

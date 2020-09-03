@@ -2,9 +2,9 @@
 	<view class="content">
 		<view class="content-main">
 			<u-cell-group>
-				<u-cell-item title="设置壁纸" :arrow="false"></u-cell-item>
+				<u-cell-item title="设置壁纸" :arrow="false" @click="switchPhoto"></u-cell-item>
 				<u-cell-item title="手机换绑" :arrow="false" @click="changePwd"></u-cell-item>
-				<u-cell-item title="问题反馈" :arrow="false" @click="goFeedback"></u-cell-item>
+				<!-- <u-cell-item title="问题反馈" :arrow="false" @click="goFeedback"></u-cell-item> -->
 				<u-cell-item title="退出登录" :arrow="false" @click="showModel"></u-cell-item>
 			</u-cell-group>
 			<view class="version">
@@ -36,13 +36,18 @@
 				    url: '/pages/feedback/feedback'
 				})
 			},
+			switchPhoto() {
+				uni.navigateTo({
+				    url: '/pages/switchPhoto/switchPhoto'
+				})
+			},
 			showModel() {
 				this.show = true
 			},
 			signOut() {
 				console.log('您已退出')
 				this.logout()
-				uni.navigateTo({
+				uni.reLaunch({
 				    url: '/pages/login/login'
 				})
 			}

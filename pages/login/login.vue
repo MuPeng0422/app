@@ -15,7 +15,7 @@
 				</u-form-item>
 			</u-form>
 			<view class="submitBtn">
-				<u-button type="primary" open-type="getUserInfo" @click="submit">提交</u-button>
+				<u-button type="primary" @click="submit">提交</u-button>
 			</view>
 			<view class="bottomBtn">
 				<view class="editPhone" @click="changePwd">
@@ -84,27 +84,53 @@
 		onReady() {
 			this.$refs.uForm.setRules(this.rules)
 		},
+		onShow() {
+			if (wx.hideHomeButton) {
+			    wx.hideHomeButton()
+			} 
+		},
 		methods: {
 			...mapMutations(['login']),
 			codeChange(text) {
 				this.tips = text
 			},
 			getCode() {
-				if(this.$refs.uCode.canGetCode) {
-					this.$refs.uCode.start()
-					setTimeout(() => {
-						// 这里此提示会被this.start()方法中的提示覆盖
-						// 通知验证码组件内部开始倒计时						
-						this.$http.get('/sendVerificationCode', {
-							params: {
-								'phoneNum': this.form.phone
-							}
-						}).then((res) => {
-							this.$u.toast('验证码已发送')
-						})
-					}, 1000);
+				if (this.form.phone === '') {
+					this.$u.toast('手机号不能为空')
 				} else {
-					this.$u.toast('倒计时结束后再发送')
+					if(this.$refs.uCode.canGetCode) {
+						this.$refs.uCode.start()
+						setTimeout(() => {
+							this.$http.get('/phoneNumValidation', {
+								params: {
+									'phoneNum': this.form.phone
+								}
+							}).then((res) => {
+								if (res.data.data === undefined) {
+									uni.showToast({
+										title: '该手机号未注册，请您先注册',
+										icon: 'none',
+										duration: 1000,
+										success: () => {
+											uni.navigateTo({
+												url: '../register/register'
+											})
+										}
+									})
+								} else {
+									this.$http.get('/sendVerificationCode', {
+										params: {
+											'phoneNum': this.form.phone
+										}
+									}).then((res) => {
+										this.$u.toast('验证码已发送')
+									})
+								}
+							})
+						}, 1000);
+					} else {
+						this.$u.toast('倒计时结束后再发送')
+					}
 				}
 			},
 			end() {
@@ -125,9 +151,6 @@
 							}
 						}).then((res) => {
 							if(res.data.code === 200) {
-								var a = '123'
-								var b = '1234'
-								console.log('相等', a === b)
 								this.$http.post('/user/findUserById', {
 									'userId': res.data.data.user.userId
 								}, {
@@ -136,6 +159,13 @@
 										'Authentication': res.data.data.token
 									}
 								}).then((result) => {
+									console.log('result', result)
+									result.data.data.realName = '安小狮'
+									
+									if (result.data.data.unitName === undefined) {
+										result.data.data.unitName = '暂未加入公司'
+									}
+									
 									let data = {
 										'userInfo': result.data.data,
 										'token': res.data.data.token
@@ -144,15 +174,16 @@
 									
 									// 判断用户是个人登录还是企业登录 0个人 1企业
 									if (res.data.data.user.state === 0) {
-										uni.navigateTo({
+										uni.reLaunch({
 										    url: '/pages/index/index'
 										})
+										this.$refs.uCode.reset()
 									} else {
-										uni.navigateTo({
+										uni.reLaunch({
 										    url: '/pages/enterprise/index/index'
 										})
+										this.$refs.uCode.reset()
 									}
-									this.$refs.uCode.reset()
 								})
 							} else {
 								this.$u.toast(res.data.message)

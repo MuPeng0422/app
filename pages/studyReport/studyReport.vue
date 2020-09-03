@@ -82,7 +82,7 @@
 			<view class="study-list">
 				<view class="text">
 					<view class="name">
-						完成每周答题
+						每周答题{{ studyData.thatWeekQuestion }}道
 					</view>
 					<view class="num">
 						已获得 {{ studyData.weekQuestionSocer }} 积分
@@ -159,6 +159,9 @@
 		methods: {
 			getReport() {
 				this.$http.get('/report', {
+					params: {
+						'userId': this.res.userInfo.userId
+					},
 					header: {
 						'Authentication': this.res.token
 					}

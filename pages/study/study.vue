@@ -10,7 +10,7 @@
 		
 		<u-parse :html="content"></u-parse>
 		<view class="goback" v-show="btnShow">
-			<u-button type="success" :disabled="disabled" size="medium" :custom-style="customStyle" @click="goBack">完成学习</u-button>
+			<u-button type="success" :disabled="disabled" size="medium" :custom-style="customStyle" @click="submit">完成学习</u-button>
 		</view>
 	</view>
 </template>
@@ -33,11 +33,15 @@
 			}
 		},
 		onLoad(data) {
+			console.log(data)
 			const item = JSON.parse(decodeURIComponent(data.data));
+			console.log(item)
 			this.itemData = item
 			this.title = this.itemData.courseName
 			this.content = this.itemData.courseContent
-			this.timestamp = 10
+			this.timestamp = Number(this.itemData.courseTimeLong) * this.second
+			
+			console.log(this.timestamp)
 			
 			const row = {
 				'courseId': String(this.itemData.id),
@@ -58,7 +62,7 @@
 			})
 		},
 		methods: {
-			goBack() {
+			submit() {
 				const data = {
 					'courseId': String(this.itemData.id),
 					'userId': String(this.itemData.userId),
@@ -71,7 +75,9 @@
 						'Authentication': this.itemData.token
 					}
 				}).then((res) => {
-					uni.navigateBack()
+					if (res.data.code === 200) {
+						uni.navigateBack()
+					}
 				})
 			},
 			countDownEnd() {

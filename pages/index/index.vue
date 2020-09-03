@@ -3,7 +3,7 @@
 		<view class="u-page">
 			<view class="pageOne" v-if="tabbarCurrent === 0">
 				<view class="container">
-					<view class="head" :style="{background: 'url('+ imageURL +')', backgroundSize: backgroundSize}">
+					<view class="head" :style="{background: 'url('+ wallpaperPath +')', backgroundSize: '100%'}">
 						<view class="avatar u-flex">
 							<view class="avatar-img">
 								<u-avatar class="img" :src="userInfo.userpicPath"></u-avatar>
@@ -88,7 +88,7 @@
 												</view>
 											</view>
 											<u-empty text="数据为空" mode="data" v-if="courseList.length === 0"></u-empty>
-											<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2" v-if="courseList.length >= 3"></u-loadmore>
+											<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2" v-if="courseList.length >= 5"></u-loadmore>
 										</view>
 										<view class="noLogin" v-else>
 											<view class="patchsign">
@@ -98,7 +98,7 @@
 												<view class="scheduling-title">
 													我的排班
 												</view>
-												<view class="scheduling-list">
+												<view class="scheduling-list" v-if="schedulingList.length > 0">
 													<view class="scheduling-list-item" v-for="(item, index) in schedulingList" :key="index">
 														<view class="scheduling-list-item-avatar">
 															<u-avatar :src="userInfo.userpicPath"></u-avatar>
@@ -119,6 +119,9 @@
 														</view>
 													</view>
 												</view>
+												<view class="scheduling-empty" v-else>
+													<u-empty text="暂无排班" mode="list"></u-empty>
+												</view>
 											</view>
 										</view>
 									</scroll-view>
@@ -127,7 +130,7 @@
 								<swiper-item class="swiper-item">
 									<scroll-view scroll-y class="swiper-item-scroll" @scrolltolower="reachBottom">
 										<view class="isLogin">
-											<view class="dataList everyday" :style="{background: 'url('+ everydayimageURL +')'}">
+											<view class="dataList everyday">
 												<view class="item-info">
 													<view class="item-info-title">
 														每日答题
@@ -137,7 +140,7 @@
 													</view>
 												</view>
 											</view>
-											<view class="dataList weekly" :style="{background: 'url('+ weeklyimageURL +')'}">
+											<view class="dataList weekly">
 												<view class="item-info">
 													<view class="item-info-title">
 														每周答题
@@ -156,7 +159,26 @@
 				</view>
 			</view>
 			<view class="pageTwo" v-else-if="tabbarCurrent === 1">
-				<my-page ref="mypage"></my-page>
+				<view class="content-main">
+					<view class="avatar">
+						<view class="avatar-container">
+							<view class="avatar-img">
+								<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150"></u-avatar>
+							</view>
+							<view class="avatar-name">
+								<text>{{userInfo.realName}}</text>
+								<u-icon name="checkmark-circle" size="40" :color="color"></u-icon>
+							</view>
+						</view>
+					</view>
+					<u-cell-group>
+						<u-cell-item icon="account-fill" title="个人信息" @click="goUserInfo"></u-cell-item>
+						<u-cell-item icon="photo" title="个人照片" @click="goPhoto"></u-cell-item>
+						<u-cell-item icon="bookmark-fill" title="个人证书" @click="goPersonalCert"></u-cell-item>
+						<u-cell-item icon="file-text-fill" title="学习报告" @click="goStudyReport"></u-cell-item>
+						<u-cell-item icon="setting-fill" title="系统设置" @click="goSystem"></u-cell-item>
+					</u-cell-group>
+				</view>
 			</view>
 		</view>
 		<u-tabbar
@@ -267,30 +289,8 @@
 
 <script>
 	import { mapMutations } from 'vuex'; 
-	import mypage from '../mypage/mypage.vue'
 	
 	export default {
-		components: {
-			'my-page': mypage
-		},
-		onLoad() {
-			uni.getStorage({
-				key: 'userInfo',
-				success: (res) => {
-					console.log('res', res)
-					this.res = res.data
-					this.getUserInfo()
-					this.getStudyData()
-					this.getScheduling()
-					this.getIntegral()
-				}
-			})
-		},
-		onShow() {
-			setTimeout(() => {
-				this.getIntegral()
-			}, 1000)
-		},
 		data() {
 			return {
 				res: {},
@@ -312,10 +312,7 @@
 				inactiveColor: '#909399',
 				activeColor: '#5098FF',
 				text: '无头像',
-				imageURL: 'https://cdn.uviewui.com/uview/example/fade.jpg',
-				everydayimageURL: '/static/timg01.png',
-				weeklyimageURL: '/static/timg02.png',
-				backgroundSize: '100% 100%',
+				wallpaperPath: '',
 				name: 'checkmark-circle',
 				color: '',
 				userInfo: {},
@@ -342,10 +339,31 @@
 				schedulingList: []
 			}
 		},
+		onLoad() {
+			uni.getStorage({
+				key: 'userInfo',
+				success: (res) => {
+					console.log('res', res)
+					this.res = res.data
+					this.getUserInfo()
+					this.getStudyData()
+					this.getScheduling()
+					this.getIntegral()
+				}
+			})
+		},
+		onShow() {
+			if (uni.hideHomeButton) {
+			   uni.hideHomeButton()
+			}
+			
+			setTimeout(() => {
+				this.getIntegral()
+			}, 500)
+		},
 		methods: {
 			...mapMutations(['logout']),
 			getIntegral() {
-				console.log(this.res)
 				this.$http.get('/findUserIntegral', {
 					params: {
 						'userId': this.res.userInfo.userId,
@@ -359,8 +377,24 @@
 			},
 			getUserInfo() {
 				this.userInfo = this.res.userInfo
-				if(!this.userInfo.hasOwnProperty('userpicPath')) {
+				if (this.userInfo.userpicPath === undefined) {
 					this.userInfo.userpicPath = '/static/default_avatar.jpg'
+				}
+				
+				if (this.userInfo.realName === undefined) {
+					this.userInfo.realName = this.userInfo.mobile
+				}
+				
+				if(this.userInfo.findCourse === 0) {
+					this.isSignIn = false
+				} else {
+					this.isSignIn = true
+				}
+				
+				if(this.res.userInfo.wallpaperPath !== undefined) {
+					this.wallpaperPath = this.res.userInfo.wallpaperPath
+				} else {
+					this.wallpaperPath = 'https://cdn.uviewui.com/uview/example/fade.jpg'
 				}
 				
 				if (this.userInfo.certificateState === 0) {
@@ -381,15 +415,19 @@
 					}
 				}).then((res) => {
 					if(res.data.code === 200) {
-						for (var i = 0; i < res.data.data.length; i++) {
-							res.data.data[i].starClockIn = res.data.data[i].starClockIn.substring(0, 5)
-							res.data.data[i].stopClockIn = res.data.data[i].stopClockIn.substring(0, 5)
+						if (res.data.data !== undefined) {
+							for (var i = 0; i < res.data.data.length; i++) {
+								res.data.data[i].starClockIn = res.data.data[i].starClockIn.substring(0, 5)
+								res.data.data[i].stopClockIn = res.data.data[i].stopClockIn.substring(0, 5)
+							}
+							this.schedulingList = res.data.data
 						}
-						this.schedulingList = res.data.data
 					}
 				}).catch((err) => {
 					if (err.data.code === 401) {
-						this.logout()
+						uni.reLaunch({
+							url: '/pages/login/login'
+						})
 					}
 				})
 			},
@@ -406,28 +444,34 @@
 				    url: '/pages/gooutwork/gooutwork'
 				})
 			},
-			startExam() {
-				this.$http.post('/question/findTodayQuestin', {}, {
+			startExam(type) {
+				this.$http.post('/question/findTodayQuestin', {
+					'type': type
+				}, {
 					header: {
 						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
 						'Authentication': this.res.token
 					}
 				}).then((res) => {
-					console.log(res)
 					res.data.token = this.res.token
 					res.data.userId = this.res.userInfo.userId
-					if (res.data !== '') {
+					res.data.type = type
+					if (res.data.data !== undefined) {
 						uni.navigateTo({
 						    url: '/pages/answer/answer?data=' + encodeURIComponent(JSON.stringify(res.data))
 						})
 					} else {
-						this.$u.toast('今日暂无答题')
+						if (tyoe === 0) {
+							this.$u.toast('今日暂无答题')
+						} else {
+							this.$u.toast('本周暂无答题')
+						}
+						
 					}
 				})
 			},
 			// 获取学习课程列表
 			getStudyData() {
-				console.log(this.res)
 				this.$http.post('/course/findTodayCourse', {
 					'pageNum': this.pageNo,
 					'pageSize': this.pageSize
@@ -439,16 +483,18 @@
 				}).then((res) => {
 					this.courseList = res.data.data.records
 					this.loadStatus.splice(this.current, 1, "loadmore")
+				}).catch((err) => {
+					if (err.data.code === 401) {
+						uni.reLaunch({
+							url: '/pages/login/login'
+						})
+					}
 				})
 			},
 			// tab栏切换
 			// tabs通知swiper切换
 			tabsChange(index) {
-				if(this.isSignIn) {
-					this.swiperCurrent = index;
-				} else {
-					this.show()
-				}
+				this.swiperCurrent = index;
 			},
 			// swiper-item左右移动，通知tabs的滑块跟随移动
 			transition(e) {
@@ -474,26 +520,31 @@
 			},
 			handleClickBtn(type) {
 				if (type === 'goToWork') {
-					uni.navigateTo({
-					    url: '/pages/gotowork/gotowork'
-					})
-					return
+					if (this.schedulingList.length > 0) {
+						uni.navigateTo({
+						    url: '/pages/gotowork/gotowork'
+						})
+					} else {
+						this.$u.toast('今日暂无排班')
+						return
+					}
+				} else if (type === 'goOutWork') {
+					if (this.schedulingList.length > 0) {
+						this.modelshow = true
+					} else {
+						this.$u.toast('今日暂无排班')
+						return
+					}
 				}
 				
-				if (this.isSignIn) {
-					if (type === 'goOutWork') {
-						this.modelshow = true
-					} else if(type === 'signRecord') {
-						uni.navigateTo({
-						    url: '/pages/signrecord/signrecord?data=' + encodeURIComponent(JSON.stringify(this.res))
-						})
-					} else if(type === 'leave') {
-						uni.navigateTo({
-						    url: '/pages/leave/leave'
-						})
-					}
-				} else {
-					this.show()
+				if(type === 'signRecord') {
+					uni.navigateTo({
+					    url: '/pages/signrecord/signrecord?data=' + encodeURIComponent(JSON.stringify(this.res))
+					})
+				} else if(type === 'leave') {
+					uni.navigateTo({
+					    url: '/pages/leave/leave'
+					})
 				}
 			},
 			show() {
@@ -514,6 +565,31 @@
 				if (!page) return;
 				page.onLoad();
 				return true
+			},
+			goUserInfo() {
+				uni.navigateTo({
+				    url: '/pages/userInfo/userInfo'
+				})
+			},
+			goPersonalCert() {
+				uni.navigateTo({
+				    url: '/pages/personalCert/personalCert'
+				})
+			},
+			goStudyReport() {
+				uni.navigateTo({
+				    url: '/pages/studyReport/studyReport'
+				})
+			},
+			goSystem() {
+				uni.navigateTo({
+				    url: '/pages/system/system'
+				})
+			},
+			goPhoto() {
+				uni.navigateTo({
+					url: '/pages/userPhoto/userPhoto'
+				})
 			}
 		}
 	}
@@ -679,11 +755,20 @@
 									.isLogin{
 										height: 100%;
 										
+										.everyday{
+											background: $every-day-base64;
+										}
+										
+										.weekly{
+											background: $weekly;
+										}
+										
 										.everyday,
 										.weekly{
 											display: flex;
 											justify-content: center;
 											align-items: center;
+											background-size: 100%;
 											
 											.item-info{
 												text-align: center;
@@ -774,6 +859,31 @@
 			
 			.pageTwo{
 				height: 100%;
+				
+				.content-main{
+					height: 100%;
+					background-color: #FFFFFF;
+					
+					.avatar{
+						height: 300rpx;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						
+						.avatar-container{
+							
+							.avatar-name{
+								display: flex;
+								align-items: center;
+								justify-content: center;
+								
+								text{
+									padding-right: 10rpx;
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}

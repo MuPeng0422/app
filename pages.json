@@ -7,121 +7,207 @@
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "消防中控室"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/enterprise/index/index",
 			"style": {
-				"navigationBarTitleText": "企业端主页"
+				"navigationBarTitleText": "主页"
+			},
+			"disableScroll": true,
+			"app-plus": {
+			    "titleNView": {
+			        "autoBackButton": false
+			    }
 			}
 		},
 		{
 			"path": "pages/enterprise/signrecord/signrecord",
 			"style": {
 				"navigationBarTitleText": "考勤记录"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/enterprise/workapproval/workapproval",
 			"style": {
 				"navigationBarTitleText": "工作审批"
-			}
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/mailList/mailList",
+			"style": {
+				"navigationBarTitleText": "通讯录"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/CompanyInfo/CompanyInfo",
+			"style": {
+				"navigationBarTitleText": "单位信息"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/businessCert/businessCert",
+			"style": {
+				"navigationBarTitleText": "我的证书"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/attendanceSetting/attendanceSetting",
+			"style": {
+				"navigationBarTitleText": "考勤设置"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/unitPhoto/unitPhoto",
+			"style": {
+				"navigationBarTitleText": "个人照片"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/selectUser/selectUser",
+			"style": {
+				"navigationBarTitleText": "选择人员"
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "主页"
+			},
+			"disableScroll": true,
+			"app-plus": {
+			    "titleNView": {
+			        "autoBackButton": false
+			    }
 			}
 		},
 		{
 			"path": "pages/study/study",
 			"style": {
 				"navigationBarTitleText": "学习"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/gotowork/gotowork",
 			"style": {
 				"navigationBarTitleText": "上班打卡"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/gooutwork/gooutwork",
 			"style": {
 				"navigationBarTitleText": "下班打卡"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/signrecord/signrecord",
 			"style": {
 				"navigationBarTitleText": "考勤记录"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/patchSign/patchSign",
 			"style": {
 				"navigationBarTitleText": "补卡申请"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/patchsignrecord/patchsignrecord",
 			"style": {
 				"navigationBarTitleText": "补卡记录"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/leave/leave",
 			"style": {
 				"navigationBarTitleText": "请假审批"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/answer/answer",
 			"style": {
 				"navigationBarTitleText": "答题中"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/userInfo/userInfo",
 			"style": {
 				"navigationBarTitleText": "个人信息"
-			}
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/userPhoto/userPhoto",
+			"style": {
+				"navigationBarTitleText": "个人照片"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/switchPhoto/switchPhoto",
+			"style": {
+				"navigationBarTitleText": "更换壁纸"
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/personalCert/personalCert",
 			"style": {
 				"navigationBarTitleText": "个人证书"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/studyReport/studyReport",
 			"style": {
 				"navigationBarTitleText": "学习报表"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/system/system",
 			"style": {
 				"navigationBarTitleText": "系统设置"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/feedback/feedback",
 			"style": {
 				"navigationBarTitleText": "问题反馈"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/changePwd/changePwd",
 			"style": {
 				"navigationBarTitleText": "换绑手机"
-			}
+			},
+			"disableScroll": true
 		},
 		{
 			"path": "pages/register/register",
 			"style": {
 				"navigationBarTitleText": "注册"
-			}
+			},
+			"disableScroll": true
 		}
 	],
 	"globalStyle": {

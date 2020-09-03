@@ -173,7 +173,9 @@
 								this.$u.toast(res.data.message)
 								
 								setTimeout(() => {
-									uni.navigateBack()
+									uni.reLaunch({
+										url: '/pages/login/login'
+									})
 								}, 1000)
 							}
 						})

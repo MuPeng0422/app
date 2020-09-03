@@ -97,6 +97,9 @@
 				this.$refs['uForm' + index][0].setRules(this.rules)
 			})
 		},
+		onShow() {
+			wx.hideHomeButton() 
+		},
 		methods: {
 			...mapMutations(['login']),
 			// tabs通知swiper切换
@@ -152,7 +155,7 @@
 									this.$refs.uCode.reset()
 								}
 							})
-						}, 2000);
+						}, 1000);
 					} else {
 						this.$u.toast('倒计时结束后再发送')
 					}
@@ -172,7 +175,6 @@
 							}
 						}).then((res) => {
 							console.log(res)
-							this.$u.toast(res.data.message)
 							if (res.data.code === 200) {
 								this.$http.post('/phoneLogin', {
 									'phoneNum': this.form.phone,
@@ -181,79 +183,43 @@
 									header: {
 										'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
 									}
-								}).then((res) => {
-									if(res.data.code === 200) {
-										this.login(res.data.data)
-										console.log(res.data.data.user.state)
-										// 判断用户是个人登录还是企业登录 0个人 1企业
-										if (res.data.data.user.state === 0) {
-											uni.navigateTo({
-											    url: '/pages/index/index'
-											})
-										} else {
-											uni.navigateTo({
-											    url: '/pages/index/index'
-											})
-										}
+								}).then((result) => {
+									console.log('result', result)
+									if(result.data.code === 200) {
+										this.$http.post('/user/findUserById', {
+											'userId': result.data.data.user.userId
+										}, {
+											header: {
+												'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+												'Authentication': result.data.data.token
+											}
+										}).then((datas) => {
+											console.log('datas', datas)
+											let data = {
+												'userInfo': datas.data.data,
+												'token': result.data.data.token
+											}
+											console.log('登录后返回数据', result.data.data)
+											this.login(data)
+											
+											// 判断用户是个人登录还是企业登录 0个人 1企业
+											if (datas.data.data.state === 0) {
+												uni.navigateTo({
+												    url: '/pages/index/index'
+												})
+											} else {
+												uni.navigateTo({
+												    url: '/pages/enterprise/index/index'
+												})
+											}
+											this.$refs.uCode.reset()
+										})
+									} else {
+										this.$u.toast(res.data.message)
 									}
 								})
 							}
 						})
-						// this.$http({
-						// 	url: 'http://192.168.0.34:9527/phoneRegist',
-						// 	data: {
-						// 		'mobile': this.form.phone,
-						// 		'state': this.current // 0个人 1 企业
-						// 	},
-						// 	method: 'POST',
-						// 	header: {
-						// 		'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
-						// 	},
-						// 	dataType: 'json',
-						// 	success: (res) => {
-						// 		uni.showToast({
-						// 			title: res.message
-						// 		})
-								
-						// 		if (res.code === 200) {
-						// 			this.$http({
-						// 				url: 'http://192.168.0.34:9527/phoneLogin',
-						// 				data: {
-						// 					phoneNum: this.form.phone,
-						// 					code: this.form.code
-						// 				},
-						// 				method: 'POST',
-						// 				header: {
-						// 					'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
-						// 				},
-						// 				dataType: 'json',
-						// 				success: (res) => {
-						// 					if(res.data.code === 200) {
-						// 						// this.$store.commit('login', res.data.data)
-						// 						this.login(res.data.data)
-												
-												// 判断用户是个人登录还是企业登录 0个人 1企业
-												// if (res.data.data.user.state === 0) {
-												// 	uni.navigateTo({
-												// 	    url: '/pages/index/index'
-												// 	})
-												// } else {
-												// 	uni.navigateTo({
-												// 	    url: '/pages/index/index'
-												// 	})
-												// }
-						// 					} else {
-						// 						uni.showToast({
-						// 							title: res.data.message,
-						// 							icon: 'none',
-						// 							duration: 2000
-						// 						})
-						// 					}
-						// 				}
-						// 			})
-						// 		}
-						// 	}
-						// })
 					} else {
 						console.log('验证失败')
 					}

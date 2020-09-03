@@ -97,6 +97,7 @@
 			const item = JSON.parse(decodeURIComponent(data.data));
 			this.res.token = item.token
 			this.res.userId = item.userId
+			this.res.type = item.type
 			this.getQuestion(item.data)
 		},
 		methods: {
@@ -154,6 +155,7 @@
 								setTimeout(() => {
 									uni.navigateBack();
 									
+									// 返回刷新
 									let page = getCurrentPages().pop(); //跳转页面成功之后
 									if (!page) return;
 									page.onLoad();

@@ -25,10 +25,10 @@
 				</view>
 				<view class="taskList" v-else>
 					<view class="label">
-						身份证号：
+						身份证号码：
 					</view>
 					<view class="input">
-						<u-input v-model="idcard" type="text" :border="true" />
+						<u-input v-model="cardNo" type="text" maxlength="18" :border="true" :disabled="true" @click="showCardKeyBoard"/>
 					</view>
 				</view>
 				<view class="submitBtn">
@@ -36,46 +36,57 @@
 				</view>
 			</view>
 		</u-popup>
+		<u-keyboard ref="uKeyboard" mode="card" v-model="cardShow" @change="valChange" :mask="false" @backspace="backspace"></u-keyboard>
 	</view>
 </template>
 
 <script>
+	import { mapMutations } from 'vuex';
 	export default {
 		data() {
 			return {
 				res: {},
 				modelshow: false,
 				usernameShow: false,
+				cardShow: false,
 				title: '修改',
+				username: '',
+				cardNo: '',
 				userInfo: {
 					username: '',
 					company: '',
 					phone: '',
 					position: '',
-					idcard: '请输入您的身份证号码'
+					idcard: ''
 				}
 			}
 		},
 		onLoad() {
 			this.getUserInfo()
 		},
-		onBackPress(event) {
-			console.log('e', event);
-		},
 		methods: {
+			...mapMutations(['login']),
 			getUserInfo() {
 				uni.getStorage({//获得保存在本地的用户信息
 					key: 'userInfo',  
 					success:(res) => {
-						console.log('resresresres',  res)
 						this.res = res
 						if (res.data.userInfo.state === 0) {
 							this.userInfo.position = '职员'
 						}
+						
 						this.userInfo.username = res.data.userInfo.realName
+						this.username = res.data.userInfo.realName
 						this.userInfo.company = res.data.userInfo.unitName
 						this.userInfo.phone = res.data.userInfo.mobile
-						this.userInfo.idcard = res.data.userInfo.cardId
+						
+						if (res.data.userInfo.cardId === undefined) {
+							this.userInfo.idcard = '请输入身份证号码'
+						} else {
+							this.cardNo = res.data.userInfo.cardId
+							let str = this.cardNo.substr(6, 8)
+							this.userInfo.idcard = this.cardNo.replace(str, '********')
+						}
 					}
 				})
 			},
@@ -87,6 +98,19 @@
 					this.usernameShow = false
 				}
 			},
+			showCardKeyBoard() {
+				this.cardShow = true
+			},
+			// 按键被点击(点击退格键不会触发此事件)
+			valChange(val) {
+				// 将每次按键的值拼接到value变量中，注意+=写法
+				this.cardNo += val;
+			},
+			// 退格键被点击
+			backspace() {
+				// 删除value的最后一个字符
+				if(this.cardNo.length) this.cardNo = this.cardNo.substr(0, this.cardNo.length - 1);
+			},
 			submit() {
 				let data = {}
 				console.log(this.res)
@@ -95,18 +119,33 @@
 						'userId': this.res.data.userInfo.userId,
 						'realName': this.username
 					}
+					
+					if (this.username === '') {
+						this.$u.toast('请输入正确的姓名')
+						return false
+					}
+					
 				} else {
 					data = {
 						'userId': this.res.data.userInfo.userId,
-						'cardId': this.idcard
+						'cardId': this.cardNo
 					}
+					
+					var reg =  /^[1-9][0-9]{5}([1][9][0-9]{2}|[2][0][0|1][0-9])([0][1-9]|[1][0|1|2])([0][1-9]|[1|2][0-9]|[3][0|1])[0-9]{3}([0-9]|[X])$/;
+					if(!reg.test(this.cardNo)) { 
+					    this.$u.toast('请输入正确的身份证号码') 
+					    return false; 
+					} 
 				}
+				
+				
+				
 				this.$http.post('/user/updateUserInfo', data, {
 					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
 						'Authentication': this.res.data.token
 					}
 				}).then((res) => {
-					console.log(res)
 					this.modelshow = false
 					
 					this.$http.post('/user/findUserById', {
@@ -124,18 +163,22 @@
 							'token': this.res.data.token
 						}
 						
-						uni.setStorage({// 将用户信息保存在本地
-						    key: 'userInfo',  
-						    data: userInfo
-						})
+						this.login(userInfo)
 						
-						if (result.data.data.state === 0) {
-							this.userInfo.position = '职员'
-						}
 						this.userInfo.username = result.data.data.realName
 						this.userInfo.company = result.data.data.unitName
 						this.userInfo.phone = result.data.data.mobile
 						this.userInfo.idcard = result.data.data.cardId
+						
+						// 返回刷新
+						
+						let pages = getCurrentPages(); // 当前页面
+						let beforePage = pages[pages.length - 2]; // 前一个页面
+						uni.navigateBack({
+						    success: function() {
+						        beforePage.onLoad(); // 执行前一个页面的onLoad方法
+						    }
+						});
 					})
 				})
 			}

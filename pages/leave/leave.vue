@@ -25,7 +25,7 @@
 										开始时间：
 									</view>
 									<view class="input">
-										<u-input v-model="startTime" type="text" placeholder="请选择开始时间" :border="true" @click="selectStartTime"/>
+										<u-input v-model="startTime" type="text" placeholder="请选择开始时间" :border="true" :disabled="true" @click="selectStartTime"/>
 									</view>
 								</view>
 								<view class="time end-time">
@@ -33,7 +33,7 @@
 										结束时间：
 									</view>
 									<view class="input">
-										<u-input v-model="endTime" type="text" placeholder="请选择结束时间" :border="true" @click="selectEndTime"/>
+										<u-input v-model="endTime" type="text" placeholder="请选择结束时间" :border="true" :disabled="true" @click="selectEndTime"/>
 									</view>
 								</view>
 							</view>
@@ -54,7 +54,7 @@
 			</swiper-item>
 			<swiper-item class="swiper-item ">
 				<scroll-view scroll-y style="height: 100%;width: 100%;" @scrolltolower="reachBottom">
-					<view class="page-box itemList">
+					<view class="page-box itemList" v-if="lists.length > 0">
 						<view class="lists-item" v-for="(item, index) in lists" :key="index" @click="getItem(item)">
 							<view class="item-left">
 								<view class="cell">
@@ -68,6 +68,9 @@
 								{{ item.applicationState }}
 							</view>
 						</view>
+					</view>
+					<view v-else>
+						<u-empty text="暂无请假记录" mode="list"></u-empty>
 					</view>
 				</scroll-view>
 			</swiper-item>
@@ -188,7 +191,7 @@
 		onReady() {
 			let nowTime = new Date()
 			let year = nowTime.getFullYear()
-			let month = nowTime.getMonth()
+			let month = nowTime.getMonth() + 1
 			let day = nowTime.getDate()
 			let hours = nowTime.getHours()
 			let minutes = nowTime.getMinutes()
@@ -217,7 +220,6 @@
 			},
 			// 点击actionSheet回调
 			actionSheetCallback(index) {
-				uni.hideKeyboard();
 				this.type = this.actionSheetList[index].text;
 			},
 			selectStartTime() {

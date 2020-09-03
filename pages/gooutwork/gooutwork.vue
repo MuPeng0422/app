@@ -21,10 +21,7 @@
 				拍照打卡：
 			</view>
 			<view class="input">
-				<view class="upload" @click="getCamera">
-					<u-icon name="plus"></u-icon>
-					<text>上传图片</text>
-				</view>
+				<u-upload ref="uUpload" :file-list="fileList" :source-type="sourceType" :auto-upload="false" :show-progress="false" max-count="1" upload-text="上传照片"  @on-list-change="onUploaded"></u-upload>
 			</view>
 		</view>
 		<view class="item">
@@ -57,6 +54,7 @@
 				date: new Date().toTimeString().slice(0, 5),
 				action: 'http://www.example.com/upload',
 				fileList: [],
+				sourceType: ['camera'],
 				attendance: {
 					label: '',
 					value: null
@@ -81,7 +79,8 @@
 		methods: {
 			getScheduling() {
 				this.$http.post('/scheduling/findUserScheduling', {
-					'userId': this.res.userInfo.userId
+					'userId': this.res.userInfo.userId,
+					'state': 1
 				}, {
 					header: {
 						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
@@ -97,6 +96,7 @@
 							row['stopDate'] = res.data.data[i].stopDate
 							row['starClockIn'] = res.data.data[i].starClockIn.substring(0, 5)
 							row['stopClockIn'] = res.data.data[i].stopClockIn.substring(0, 5)
+							row['attId'] = res.data.data[i].attId
 							this.schedulingList.push(row)
 						}
 					}
@@ -107,6 +107,7 @@
 				uni.hideKeyboard();
 				this.attendance.label = this.schedulingList[index].text;
 				this.attendance.value = this.schedulingList[index].value;
+				this.attendance.attId = this.schedulingList[index].attId;
 			},
 			// 位置授权
 			getAuthorizeInfo(){
@@ -173,6 +174,9 @@
 					}
 				});
 			},
+			onUploaded(lists, name) {
+				this.fileList = lists;
+			},
 			onListChange(lists) {
 				console.log('onListChange', lists);
 				this.lists = lists;
@@ -188,34 +192,53 @@
 			},
 			handliClickBtn() {
 				
-				let data = {
-					userId: this.res.userInfo.userId,
-					type: 2,  // 1上班  2下班
-					schedulingId: this.attendance.value,
-					endLongitude: String(this.endLongitude),
-					endLatitude: String(this.endLatitude)
-				}
-				this.$http.post('/attendance/addUserAttendance', data, {
+				uni.uploadFile({
+					url: this.$http.config.baseURL + '/attendance/uploadFace',    
+					filePath: this.fileList[0].url,
+					name: 'userCertificate',
 					header: {
-						'Authentication': this.res.token
-					}
-				}).then((res) => {
-					console.log(res)
-					if (res.data.code === 200) {
-						uni.showToast({
-							title: res.data.message,
-							icon: 'block',
-							duration: 1000,
-							success: () => {
-								uni.navigateBack();
+						'Content-Type': 'multipart/form-data',
+						'Authentication': this.res.token,
+					},
+					formData: {
+						'userId': this.res.userInfo.userId
+					},
+					success: (res) =>{
+						let data = JSON.parse(res.data)
+						this.$u.toast(data.data.msg)
+						if (data.data.code === '1') {
+							
+							let data = {
+								userId: this.res.userInfo.userId,
+								type: 2,  // 1上班  2下班
+								schedulingId: this.attendance.value,
+								endLongitude: String(this.endLongitude),
+								endLatitude: String(this.endLatitude),
+								id: this.attendance.attId
 							}
-						})
-					} else {
-						uni.showToast({
-							title: res.data.message,
-							icon: 'none',
-							duration: 3000
-						})
+							this.$http.post('/attendance/addUserAttendance', data, {
+								header: {
+									'Authentication': this.res.token
+								}
+							}).then((res) => {
+								if (res.data.code === 200) {
+									uni.showToast({
+										title: res.data.message,
+										icon: 'block',
+										duration: 1000,
+										success: () => {
+											uni.navigateBack();
+										}
+									})
+								} else {
+									uni.showToast({
+										title: res.data.message,
+										icon: 'none',
+										duration: 3000
+									})
+								}
+							})
+						}
 					}
 				})
 			}

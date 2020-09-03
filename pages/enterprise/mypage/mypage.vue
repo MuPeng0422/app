@@ -4,18 +4,18 @@
 			<view class="avatar">
 				<view class="avatar-container">
 					<view class="avatar-img">
-						<u-avatar :src="userInfo.src" mode="square" :size="150"></u-avatar>
+						<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150"></u-avatar>
 					</view>
 					<view class="avatar-name">
-						<text>{{userInfo.name}}</text>
-						<u-icon name="checkmark-circle" size="40" color="#19be6b"></u-icon>
+						<text>{{userInfo.realName}}</text>
 					</view>
 				</view>
 			</view>
 			<u-cell-group>
-				<u-cell-item icon="account-fill" title="个人信息" @click="goUserInfo"></u-cell-item>
-				<u-cell-item icon="bookmark-fill" title="个人证书" @click="goPersonalCert"></u-cell-item>
-				<u-cell-item icon="file-text-fill" title="学习报告" @click="goStudyReport"></u-cell-item>
+				<u-cell-item icon="account-fill" title="单位信息" @click="goCompanyInfo"></u-cell-item>
+				<u-cell-item icon="photo" title="个人照片" @click="goPhoto"></u-cell-item>
+				<u-cell-item icon="bookmark-fill" title="营业执照" @click="goBusinessCert"></u-cell-item>
+				<u-cell-item icon="file-text-fill" title="考勤设置" @click="goAttendanceSetting"></u-cell-item>
 				<u-cell-item icon="setting-fill" title="系统设置" @click="goSystem"></u-cell-item>
 			</u-cell-group>
 		</view>
@@ -26,26 +26,51 @@
 	export default {
 		data() {
 			return {
-				userInfo: {
-					src: '',
-					name: '刘大招'
-				}
+				res: {},
+				userInfo: {},
+				color: ''
 			}
 		},
+		onReady() {
+			uni.getStorage({
+				key: 'userInfo',
+				success: (res) => {
+					console.log(res)
+					this.res = res.data
+					this.userInfo = res.data.userInfo
+					if (this.userInfo.userpicPath === undefined) {
+						this.userInfo.userpicPath = '/static/default_avatar.jpg'
+					}
+					
+					if (this.userInfo.certificateState === 0) {
+						this.color = '#19be6b'
+					} else if (this.userInfo.certificateState === 1) {
+						this.color = '#ff9900'
+					} else if (this.userInfo.certificateState === 2) {
+						this.color = '#909399'
+					}
+				}
+			})
+		},
 		methods: {
-			goUserInfo() {
+			goCompanyInfo() {
 				uni.navigateTo({
-				    url: '/pages/userInfo/userInfo'
+				    url: '/pages/enterprise/CompanyInfo/CompanyInfo'
 				})
 			},
-			goPersonalCert() {
+			goPhoto() {
 				uni.navigateTo({
-				    url: '/pages/personalCert/personalCert'
+					url: '/pages/enterprise/unitPhoto/unitPhoto'
 				})
 			},
-			goStudyReport() {
+			goBusinessCert() {
 				uni.navigateTo({
-				    url: '/pages/studyReport/studyReport'
+				    url: '/pages/enterprise/businessCert/businessCert'
+				})
+			},
+			goAttendanceSetting() {
+				uni.navigateTo({
+				    url: '/pages/enterprise/attendanceSetting/attendanceSetting'
 				})
 			},
 			goSystem() {
@@ -74,6 +99,10 @@
 				
 				.avatar-container{
 					
+					.avatar-img{
+						display: flex;
+						justify-content: center;
+					}
 					.avatar-name{
 						display: flex;
 						align-items: center;

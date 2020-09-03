@@ -5,15 +5,16 @@
 			:insert="true" 
 			:selected="selected"
 			@change="change"
+			@monthSwitch="monthSwitch"
 			 ></uni-calendar>
 		</view>
 		<view class="sign-info" v-show="show">
-			<view class="item">
+			<view class="item" v-for="(item, index) in data">
 				<view class="sign-time">
-					上班打卡： {{ data.sbtime }}
+					上班打卡：{{ item.sbtime }}
 				</view>
 				<view class="sign-time">
-					下班打卡： {{ data.xbtime }}
+					下班打卡：{{ item.xbtime }}
 				</view>
 			</view>
 		</view>
@@ -32,56 +33,116 @@
 				late: 2,
 				nosign: 1,
 				show: false,
+				year: '',
+				month: '',
 				selected: [],
-				data: {}
+				data: []
 			}
 		},
 		onLoad(data) {
 			const item = JSON.parse(decodeURIComponent(data.data));
 			this.res = item
-			this.getAttendance()
+			let date = new Date()
+			this.year = date.getFullYear()
+			this.month = date.getMonth() + 1
+			this.getAttendance(this.year, this.month)
 		},
         methods: {
-			getAttendance() {
-				this.$http.post('/attendance/findUserAttendance', {
-					'userId': this.res.data.user.userId
-				}, {
+			getAttendance(year, month) {
+				this.$http.get('/attendance/currentMonth', {
+					params: {
+						'userId': this.res.userInfo.userId,
+						'year': year,
+						'month': month
+					},
 					header: {
 						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
-						'Authentication': this.res.data.token
+						'Authentication': this.res.token
 					}
 				}).then((res) => {
-					console.log(res)
-					for (var i = 0; i < res.data.data.length; i++) {
-						const row = {
-							date: '',
-							data: {
-								sbtime: '',
-								xbtime: ''
+					if (res.data.code === 200) {
+						for (var i = 0; i < res.data.data.length; i++) {
+							const row = {
+								date: '',
+								info: '',
+								data: []
 							}
-						}
-						if (res.data.data[i].type === 1) {
-							const data = res.data.data[i].goWorkTime.split(' ')
-							console.log(data)
-							row.date = data[0]
-							row.data.sbtime = data[1]
-							row.info = '迟到'
 							
-						} else if (res.data.data[i].type === 2) {
-							const data = res.data.data[i].outWorkTime.split(' ')
-							console.log(data)
-							row.date = data[0]
-							row.data.xbtime = data[1]
+							if (res.data.data[i].Status === 1) {
+								row.date = res.data.data[i].date
+								row.info = ''
+								const item = {
+									sbtime: '',
+									xbtime: ''
+								}
+								
+								item.sbtime = '未排班'
+								item.xbtime = '未排班'
+								row.data.push(item)
+							} else if (res.data.data[i].Status === 0) {
+								row.date = res.data.data[i].date
+								row.info = ''
+								for (var j = 0; j < res.data.data[i].work.length; j++) {
+									const item = {
+										sbtime: '',
+										xbtime: ''
+									}
+									
+									if (res.data.data[i].work[j].downWork === '未打卡') {
+										item.xbtime = '未打卡'
+									} else {
+										const downWork = res.data.data[i].work[j].downWork.split(' ')
+										item.xbtime = downWork[1]
+									}
+									
+									if (res.data.data[i].work[j].upWork === '未打卡') {
+										item.sbtime = '未打卡'
+									} else {
+										const upWork = res.data.data[i].work[j].upWork.split(' ')
+										item.sbtime = upWork[1]
+									}
+									row.data.push(item)
+								}
+							} else {
+								row.date = res.data.data[i].date
+								row.info = '异常'
+								for (var j = 0; j < res.data.data[i].work.length; j++) {
+									const item = {
+										sbtime: '',
+										xbtime: ''
+									}
+									
+									if (res.data.data[i].work[j].downWork === '未打卡') {
+										item.xbtime = '未打卡'
+									} else {
+										console.log(res.data.data[i].work[j].downWork)
+										const downWork = res.data.data[i].work[j].downWork.split(' ')
+										item.xbtime = downWork[1]
+									}
+									
+									if (res.data.data[i].work[j].upWork === '未打卡') {
+										item.sbtime = '未打卡'
+									} else {
+										const upWork = res.data.data[i].work[j].upWork.split(' ')
+										item.sbtime = upWork[1]
+									}
+									row.data.push(item)
+								}
+							}
+							this.selected.push(row)
 						}
-						this.selected.push(row)
 					}
-					console.log(this.selected)
 				})
 			},
+			monthSwitch(e) {
+				this.show = false
+				this.getAttendance(e.year, e.month)
+			},
             change(e) {
-				this.show = true
-                console.log(e);
-				this.data = e.extraInfo.data
+				if (this.selected.length > 0) {
+					this.show = true
+					this.data = e.extraInfo.data
+				}
             }
         }
     };
