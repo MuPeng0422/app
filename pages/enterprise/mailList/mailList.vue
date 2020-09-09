@@ -1,24 +1,39 @@
 <template>
 	<view class="content">
 		<view class="mail-list" v-if="datalist.length > 0">
-			<view class="mail-item" v-for="(item, index) in datalist" :key="index">
-				<view class="mail-avatar">
-					<u-avatar :src="item.userpicPath" mode="circle"></u-avatar>
-				</view>
-				<view class="mail-info">
-					<view class="mail-info-content">
-						<view class="mail-info-name">
-							{{ item.realName }}
+		
+			<u-swipe-action
+				bg-color="rgb(250, 250, 250)"
+				@open="open"
+				:disabled="false"
+				:index="index"
+				v-for="(item, index) in datalist"
+				:key="item.userId"
+				:show="item.show"
+				@click="click(index, item)"
+				:btn-width="btnWidth"
+				@close="close"
+				:options="options"
+			>
+				<view class="mail-item">
+					<view class="mail-avatar">
+						<u-avatar :src="item.userpicPath" mode="circle"></u-avatar>
+					</view>
+					<view class="mail-info">
+						<view class="mail-info-content">
+							<view class="mail-info-name">
+								{{ item.realName }}
+							</view>
+							<view class="mail-info-phone">
+								{{ item.mobile }}
+							</view>
 						</view>
-						<view class="mail-info-phone">
-							{{ item.mobile }}
+						<view class="mail-info-status">
+							<u-button :type="item.type" :custom-style="customStyle" size="mini" >{{ item.statusName }}</u-button>
 						</view>
 					</view>
-					<view class="mail-info-status">
-						<u-button :type="item.type" :custom-style="customStyle" size="mini" >{{ item.statusName }}</u-button>
-					</view>
 				</view>
-			</view>
+			</u-swipe-action>
 		</view>
 		<view class="empty" v-else>
 			<view>
@@ -47,7 +62,16 @@
 					width: '100rpx',
 					height: '60rpx'
 				},
-				datalist: []
+				datalist: [],
+				btnWidth: 180,
+				options: [
+					{
+						text: '删除',
+						style: {
+							backgroundColor: '#dd524d'
+						}
+					}
+				]
 			}
 		},
 		onLoad() {
@@ -71,6 +95,8 @@
 				}).then((res) => {
 					if (res.data.code === 200) {
 						for (var i = 0; i < res.data.data.length; i++) {
+							console.log(res.data.data[i])
+							res.data.data[i].show = false
 							if (res.data.data[i].userpicPath === undefined) {
 								res.data.data[i].userpicPath = '/static/default_avatar.jpg'
 							}
@@ -89,9 +115,39 @@
 			addUser() {
 				this.show = true
 			},
+			click(index, item) {
+				this.datalist.splice(index, 1);
+				this.$http.post('/user/updateUserInfo', {
+					unitId: 1000000000,
+					delUnitFlag: 1,
+					userId: item.userId
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					console.log(res)
+					if (res.data.code === 200) {
+						uni.showToast({
+							title: '删除成功！',
+							icon: 'block'
+						})
+					}
+				})
+			},
+			open(index) {
+				this.datalist[index].show = true;
+				this.datalist.map((val, idx) => {
+					if (index != idx) this.datalist[idx].show = false;
+				});
+				
+			},
+			close(index) {
+				this.datalist[index].show = false;
+			},
 			submit() {
 				this.show = true
-				console.log()
 				if (this.phone !== '') {
 					if(!(/^1[3456789]\d{9}$/.test(this.phone))){ 
 						this.$u.toast('请输入正确的手机号') 
@@ -155,7 +211,7 @@
 				border-bottom: 1rpx solid #c8c7cc;
 				
 				&:first-child{
-					border-top: 1rpx solid #c8c7cc;
+					border-bottom: 1rpx solid #c8c7cc;
 				}
 				
 				.mail-avatar{

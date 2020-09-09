@@ -150,17 +150,21 @@
 				if (this.userInfo.wallpaperPath !== undefined) {
 					this.avatarURL = this.userInfo.wallpaperPath
 				} else {
-					this.avatarURL = this.imageURL
+					uni.getFileSystemManager().readFile({
+						filePath: this.imageURL,
+						encoding: 'base64',
+						success: (r) => {
+							this.avatarURL = 'data:image/jpeg;base64,' + r.data
+						}
+					})
 				}
-				
-				
-				
 				
 				if(this.userInfo.unitAcceptance === undefined) {
 					this.userInfo.unitAcceptance = '/static/default_avatar.jpg'
 				}
 			},
 			getSchedulingList() {
+				this.schedulingList = []
 				this.$http.post('/scheduling/findUserSchedulingBydeptId', {
 					'unitId': this.res.userInfo.unitId
 				}, {
@@ -193,22 +197,17 @@
 									if (res.data.data[i].pbState === 0) {
 										res.data.data[i].schedulingName = '未排班'
 										res.data.data[i].text = '休息'
-										res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
 									} else {
 										if (res.data.data[i].applicationState === 0) {
-											res.data.data[i].text = '执勤'
 											if (res.data.data[i].attState === 0) {
 												res.data.data[i].text = '未打卡'
-												res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
 											} else {
-												res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
+												res.data.data[i].text = '执勤'
 											}
 										} else {
 											res.data.data[i].text = '请假'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #E1E3E6, #E1E3E6)'
 										}
 									}
-									
 								} else {
 									let dueDate, dateSpan;
 									if (res.data.data[i].effectiveTime !== undefined) {
@@ -224,11 +223,11 @@
 												res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
 											} else {
 												if (res.data.data[i].applicationState === 0) {
-													res.data.data[i].text = '执勤'
 													if (res.data.data[i].attState === 0) {
 														res.data.data[i].text = '未打卡'
 														res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
 													} else {
+														res.data.data[i].text = '执勤'
 														res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
 													}
 												} else {
@@ -244,9 +243,10 @@
 												res.data.data[i].text = '休息'
 											} else {
 												if (res.data.data[i].applicationState === 0) {
-													res.data.data[i].text = '执勤'
 													if (res.data.data[i].attState === 0) {
 														res.data.data[i].text = '未打卡'
+													} else {
+														res.data.data[i].text = '执勤'
 													}
 												} else {
 													res.data.data[i].text = '请假'
@@ -260,9 +260,10 @@
 												res.data.data[i].text = '休息'
 											} else {
 												if (res.data.data[i].applicationState === 0) {
-													res.data.data[i].text = '执勤'
 													if (res.data.data[i].attState === 0) {
 														res.data.data[i].text = '未打卡'
+													} else {
+														res.data.data[i].text = '执勤'
 													}
 												} else {
 													res.data.data[i].text = '请假'
@@ -276,9 +277,10 @@
 												res.data.data[i].text = '休息'
 											} else {
 												if (res.data.data[i].applicationState === 0) {
-													res.data.data[i].text = '执勤'
 													if (res.data.data[i].attState === 0) {
 														res.data.data[i].text = '未打卡'
+													} else {
+														res.data.data[i].text = '执勤'
 													}
 												} else {
 													res.data.data[i].text = '请假'
@@ -289,7 +291,7 @@
 									
 									if (res.data.data[i].certificateTime !== undefined) {
 										res.data.data[i].certType = '结业证'
-										dueDate = Date.parse(res.data.data[i].effectiveTime)
+										dueDate = Date.parse(res.data.data[i].certificateTime)
 										dateSpan = Math.floor((nowDate - dueDate) / (24*3600*1000))
 										
 										if (dateSpan <= -30) {
@@ -299,12 +301,12 @@
 												res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
 											} else {
 												if (res.data.data[i].applicationState === 0) {
-													res.data.data[i].text = '执勤'
 													if (res.data.data[i].attState === 0) {
 														res.data.data[i].text = '未打卡'
 														res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
 													} else {
-														res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
+														res.data.data[i].text = '执勤'
+														res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
 													}
 												} else {
 													res.data.data[i].text = '请假'
@@ -314,12 +316,54 @@
 										} else if (dateSpan < 0 && dateSpan > -30) {
 											res.data.data[i].certDueDate = Math.abs(dateSpan) + '天后到期'
 											res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
+											if (res.data.data[i].pbState === 0) {
+												res.data.data[i].schedulingName = '未排班'
+												res.data.data[i].text = '休息'
+											} else {
+												if (res.data.data[i].applicationState === 0) {
+													if (res.data.data[i].attState === 0) {
+														res.data.data[i].text = '未打卡'
+													} else {
+														res.data.data[i].text = '执勤'
+													}
+												} else {
+													res.data.data[i].text = '请假'
+												}
+											}
 										} else if (dateSpan === 0) {
 											res.data.data[i].certDueDate = '今天到期'
 											res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
+											if (res.data.data[i].pbState === 0) {
+												res.data.data[i].schedulingName = '未排班'
+												res.data.data[i].text = '休息'
+											} else {
+												if (res.data.data[i].applicationState === 0) {
+													if (res.data.data[i].attState === 0) {
+														res.data.data[i].text = '未打卡'
+													} else {
+														res.data.data[i].text = '执勤'
+													}
+												} else {
+													res.data.data[i].text = '请假'
+												}
+											}
 										} else {
 											res.data.data[i].certDueDate = '已过期' + Math.abs(dateSpan) + '天'
 											res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
+											if (res.data.data[i].pbState === 0) {
+												res.data.data[i].schedulingName = '未排班'
+												res.data.data[i].text = '休息'
+											} else {
+												if (res.data.data[i].applicationState === 0) {
+													if (res.data.data[i].attState === 0) {
+														res.data.data[i].text = '未打卡'
+													} else {
+														res.data.data[i].text = '执勤'
+													}
+												} else {
+													res.data.data[i].text = '请假'
+												}
+											}
 										}
 									}
 									
@@ -331,12 +375,12 @@
 											res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
 										} else {
 											if (res.data.data[i].applicationState === 0) {
-												res.data.data[i].text = '执勤'
 												if (res.data.data[i].attState === 0) {
 													res.data.data[i].text = '未打卡'
-													res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
+													res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
 												} else {
-													res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
+													res.data.data[i].text = '执勤'
+													res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
 												}
 											} else {
 												res.data.data[i].text = '请假'
@@ -373,7 +417,10 @@
 				}
 			},
 			beforeSwitch(index) {
-				return true;
+				let page = getCurrentPages().pop(); //跳转页面成功之后
+				if (!page) return;
+				page.onLoad();
+				return true
 			},
 			goCompanyInfo() {
 				uni.navigateTo({
@@ -537,6 +584,9 @@
 						justify-content: center;
 						
 						.avatar-container{
+							display: flex;
+							flex-direction: column;
+							justify-content: center;
 							
 							.avatar-img{
 								display: flex;

@@ -1,7 +1,12 @@
 <template>
 	<view class="content">
-		<view class="position">
-			当前位置：{{ location }}
+		<view class="sign-attendance">
+			<view class="label">
+				当前位置：
+			</view>
+			<view class="input">
+				<u-input v-model="location" type="text" :border="true" :disabled="true" placeholder="正在获取您的当前位置..." />
+			</view>
 		</view>
 		<view class="sign-attendance">
 			<view class="label">
@@ -43,11 +48,15 @@
 
 <script>
 	import { mapMutations } from 'vuex';
+	import qqmapsdk from '@/static/js/qqmap-wx-jssdk.js'
+	const QQMapWX = new qqmapsdk({
+	    key: '643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6'
+	});
 	export default {
 		data() {
 			return {
 				res: {},
-				location: '正在获取位置信息...',
+				location: '',
 				show: false,
 				signAttendance: false,
 				src: '',
@@ -150,18 +159,34 @@
 						that.goLatitude = res.latitude
 							
 						var locationString = res.latitude + "," + res.longitude;
-						uni.request({
-							url: 'https://apis.map.qq.com/ws/geocoder/v1/',
-							data: {
-							  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
-							  "location": locationString
+						QQMapWX.reverseGeocoder({
+							location: {
+							  latitude: that.goLatitude,
+							  longitude: that.goLongitude
 							},
-							method: 'get',
+							get_poi: 1,
+							poi_options: 'policy=2;radius=3000;page_size=20;page_index=1',
 							success: function (r) {
-								//输出一下位置信息
-								that.location = r.data.result.address
+								console.log(r.result)
+								that.location = r.result.pois[0].address
 							}
-						});
+						})				
+										
+						// uni.request({
+						// 	url: 'https://apis.map.qq.com/ws/geocoder/v1/',
+						// 	data: {
+						// 	  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
+						// 	  "location": locationString
+						// 	},
+						// 	method: 'get',
+						// 	success: function (r) {
+						// 		console.log(r)
+						// 		//输出一下位置信息
+						// 		that.location = r.data.result.address
+						// 		that.$u.toast(that.location)
+						// 	}
+						// });
+						
 					}
 				});
 				
@@ -197,9 +222,6 @@
 				})
 			},
 			handliClickBtn() {
-				console.log(this.src)
-				console.log(this.res.token)
-				console.log(this.res.userInfo.userId)
 				if (this.res.userInfo.userpicPath === undefined) {
 					uni.showToast({
 						title: '请先传个人照片再打卡',
@@ -227,9 +249,7 @@
 						'userId': this.res.userInfo.userId
 					},
 					success: (res) =>{
-						console.log(res)
 						let data = JSON.parse(res.data)
-						console.log(data)
 						this.$u.toast(data.data.msg)
 						if (data.data.code === '1') {
 							this.show = true
@@ -254,13 +274,11 @@
 					goLatitude: String(this.goLatitude),
 					id: this.attendance.attId
 				}
-				console.log(data)
 				this.$http.post('/attendance/addUserAttendance', data, {
 					header: {
 						'Authentication': this.res.token
 					}
 				}).then((res) => {
-					console.log(res)
 					if (res.data.code === 200) {
 						uni.showToast({
 							title: res.data.message,

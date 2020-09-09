@@ -8,7 +8,7 @@
 				<u-cell-item title="退出登录" :arrow="false" @click="showModel"></u-cell-item>
 			</u-cell-group>
 			<view class="version">
-				系统版本 V2.63
+				系统版本 V1.0.0
 			</view>
 		</view>
 		<u-modal ref="uModal" v-model="show" :show-cancel-button="true" :async-close="asyncClose" :content="content" @confirm="signOut"></u-modal>

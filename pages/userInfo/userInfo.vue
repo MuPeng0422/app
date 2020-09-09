@@ -113,7 +113,6 @@
 			},
 			submit() {
 				let data = {}
-				console.log(this.res)
 				if (this.usernameShow) {
 					data = {
 						'userId': this.res.data.userInfo.userId,
@@ -166,8 +165,6 @@
 						this.login(userInfo)
 						
 						this.userInfo.username = result.data.data.realName
-						this.userInfo.company = result.data.data.unitName
-						this.userInfo.phone = result.data.data.mobile
 						this.userInfo.idcard = result.data.data.cardId
 						
 						// 返回刷新

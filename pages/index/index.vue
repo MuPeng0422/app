@@ -343,8 +343,9 @@
 			uni.getStorage({
 				key: 'userInfo',
 				success: (res) => {
-					console.log('res', res)
 					this.res = res.data
+				
+					
 					this.getUserInfo()
 					this.getStudyData()
 					this.getScheduling()
@@ -394,7 +395,14 @@
 				if(this.res.userInfo.wallpaperPath !== undefined) {
 					this.wallpaperPath = this.res.userInfo.wallpaperPath
 				} else {
-					this.wallpaperPath = 'https://cdn.uviewui.com/uview/example/fade.jpg'
+					let wallpaperPath = '/static/fade.jpg'
+					uni.getFileSystemManager().readFile({
+						filePath: wallpaperPath,
+						encoding: 'base64',
+						success: (r) => {
+							this.wallpaperPath = 'data:image/jpeg;base64,' + r.data
+						}
+					})
 				}
 				
 				if (this.userInfo.certificateState === 0) {
@@ -461,7 +469,7 @@
 						    url: '/pages/answer/answer?data=' + encodeURIComponent(JSON.stringify(res.data))
 						})
 					} else {
-						if (tyoe === 0) {
+						if (type === 0) {
 							this.$u.toast('今日暂无答题')
 						} else {
 							this.$u.toast('本周暂无答题')
@@ -871,6 +879,9 @@
 						justify-content: center;
 						
 						.avatar-container{
+							display: flex;
+							flex-direction: column;
+							justify-content: center;
 							
 							.avatar-name{
 								display: flex;
@@ -880,6 +891,12 @@
 								text{
 									padding-right: 10rpx;
 								}
+							}
+							
+							.avatar-img{
+								display: flex;
+								align-items: center;
+								justify-content: center;
 							}
 						}
 					}

@@ -274,20 +274,32 @@
 						self.longitude = res.longitude;
 						
 						var locationString = res.latitude + "," + res.longitude;
-						uni.request({
-							url: 'https://apis.map.qq.com/ws/geocoder/v1/',
-							data: {
-							  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
-							  "location": locationString
-							},
-							method: 'get',
-							success: function (r) {
-								//输出一下位置信息
-								self.address = r.data.result.address
+						// uni.request({
+						// 	url: 'https://apis.map.qq.com/ws/geocoder/v1/',
+						// 	data: {
+						// 	  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
+						// 	  "location": locationString
+						// 	},
+						// 	method: 'get',
+						// 	success: function (r) {
+						// 		//输出一下位置信息
+						// 		self.address = r.data.result.address
 								
-								console.log(self.address)
+						// 		console.log(self.address)
+						// 	}
+						// });
+						QQMapWX.reverseGeocoder({
+							location: {
+							  latitude: self.latitude,
+							  longitude: self.longitude
+							},
+							get_poi: 1,
+							poi_options: 'policy=2;radius=3000;page_size=20;page_index=1',
+							success: function (r) {
+								console.log(r)
+								self.address = r.result.pois[0].address
 							}
-						});
+						})
 					}
 				});
 			},

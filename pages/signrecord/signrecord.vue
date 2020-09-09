@@ -69,16 +69,16 @@
 							}
 							
 							if (res.data.data[i].Status === 1) {
-								row.date = res.data.data[i].date
-								row.info = ''
-								const item = {
-									sbtime: '',
-									xbtime: ''
-								}
+								// row.date = res.data.data[i].date
+								// row.info = ''
+								// const item = {
+								// 	sbtime: '',
+								// 	xbtime: ''
+								// }
 								
-								item.sbtime = '未排班'
-								item.xbtime = '未排班'
-								row.data.push(item)
+								// item.sbtime = '未排班'
+								// item.xbtime = '未排班'
+								// row.data.push(item)
 							} else if (res.data.data[i].Status === 0) {
 								row.date = res.data.data[i].date
 								row.info = ''
@@ -139,8 +139,9 @@
 				this.getAttendance(e.year, e.month)
 			},
             change(e) {
-				if (this.selected.length > 0) {
-					this.show = true
+				if (e.extraInfo.data === undefined) {
+					this.show = false
+				} else {
 					this.data = e.extraInfo.data
 				}
             }

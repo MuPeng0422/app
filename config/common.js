@@ -6,4 +6,5 @@ export {
 	http
 }
 
-http.config.baseURL = 'http://192.168.0.67:9527'
+http.config.baseURL = 'https://xks.atx.net.cn'
+// http.config.baseURL = 'http://192.168.0.54:9527'

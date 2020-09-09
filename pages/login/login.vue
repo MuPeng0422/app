@@ -15,7 +15,7 @@
 				</u-form-item>
 			</u-form>
 			<view class="submitBtn">
-				<u-button type="primary" @click="submit">提交</u-button>
+				<u-button type="primary" :throttle-time="2000" @click="submit">提交</u-button>
 			</view>
 			<view class="bottomBtn">
 				<view class="editPhone" @click="changePwd">
@@ -85,9 +85,9 @@
 			this.$refs.uForm.setRules(this.rules)
 		},
 		onShow() {
-			if (wx.hideHomeButton) {
-			    wx.hideHomeButton()
-			} 
+			if (uni.hideHomeButton) {
+			   uni.hideHomeButton()
+			}
 		},
 		methods: {
 			...mapMutations(['login']),
@@ -112,9 +112,11 @@
 										icon: 'none',
 										duration: 1000,
 										success: () => {
-											uni.navigateTo({
-												url: '../register/register'
-											})
+											setTimeout(() => {
+												uni.navigateTo({
+													url: '../register/register'
+												})
+											}, 2000)
 										}
 									})
 								} else {
@@ -134,10 +136,12 @@
 				}
 			},
 			end() {
-				this.$u.toast('倒计时结束')
+				// this.$u.toast('倒计时结束')
+				console.log('倒计时结束')
 			},
 			start() {
-				this.$u.toast('倒计时开始')
+				// this.$u.toast('倒计时开始')
+				console.log('倒计时开始')
 			},
 			submit() {
 				this.$refs.uForm.validate(valid => {
@@ -151,46 +155,45 @@
 							}
 						}).then((res) => {
 							if(res.data.code === 200) {
-								this.$http.post('/user/findUserById', {
-									'userId': res.data.data.user.userId
-								}, {
-									header: {
-										'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
-										'Authentication': res.data.data.token
-									}
-								}).then((result) => {
-									console.log('result', result)
-									result.data.data.realName = '安小狮'
-									
-									if (result.data.data.unitName === undefined) {
-										result.data.data.unitName = '暂未加入公司'
-									}
-									
-									let data = {
-										'userInfo': result.data.data,
-										'token': res.data.data.token
-									}
-									this.login(data)
-									
-									// 判断用户是个人登录还是企业登录 0个人 1企业
-									if (res.data.data.user.state === 0) {
-										uni.reLaunch({
-										    url: '/pages/index/index'
-										})
-										this.$refs.uCode.reset()
-									} else {
-										uni.reLaunch({
-										    url: '/pages/enterprise/index/index'
-										})
-										this.$refs.uCode.reset()
-									}
-								})
+								if (res.data.data !== undefined) {
+									this.$http.post('/user/findUserById', {
+										'userId': res.data.data.user.userId
+									}, {
+										header: {
+											'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+											'Authentication': res.data.data.token
+										}
+									}).then((result) => {
+										if (res.data.data.user.unitId === 0) {
+											result.data.data.unitName = '暂未加入公司'
+										}
+										
+										let data = {
+											'userInfo': result.data.data,
+											'token': res.data.data.token
+										}
+										this.login(data)
+										
+										// 判断用户是个人登录还是企业登录 0个人 1企业
+										if (res.data.data.user.state === 0) {
+											uni.reLaunch({
+											    url: '/pages/index/index'
+											})
+											this.$refs.uCode.reset()
+										} else {
+											uni.reLaunch({
+											    url: '/pages/enterprise/index/index'
+											})
+											this.$refs.uCode.reset()
+										}
+									})
+								} else {
+									this.$u.toast(res.data.message)
+								}
 							} else {
 								this.$u.toast(res.data.message)
 							}
 						})
-					} else {
-						console.log('验证失败')
 					}
 				})
 			},

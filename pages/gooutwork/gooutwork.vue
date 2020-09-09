@@ -44,15 +44,18 @@
 </template>
 
 <script>
+	import qqmapsdk from '@/static/js/qqmap-wx-jssdk.js'
+	const QQMapWX = new qqmapsdk({
+	    key: '643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6'
+	});
 	export default {
 		data() {
 			return {
 				res: {},
-				address: '正在获取位置信息...',
+				address: '',
 				work: '',
 				signAttendance: false,
 				date: new Date().toTimeString().slice(0, 5),
-				action: 'http://www.example.com/upload',
 				fileList: [],
 				sourceType: ['camera'],
 				attendance: {
@@ -126,31 +129,45 @@
 			getLocationInfo(){
 				var that = this
 				uni.getLocation({
-					type: 'wgs84',
+					type: 'gcj02',
 					success (res) {
 						that.endLongitude = res.longitude
 						that.endLatitude = res.latitude
 						var locationString = res.latitude + "," + res.longitude;
-						uni.request({
-							url: 'https://apis.map.qq.com/ws/geocoder/v1/',
-							data: {
-							  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
-							  "location": locationString
+						
+						QQMapWX.reverseGeocoder({
+							location: {
+							  latitude: that.endLatitude,
+							  longitude: that.endLongitude
 							},
-							method: 'get',
+							get_poi: 1,
+							poi_options: 'policy=2;radius=3000;page_size=20;page_index=1',
 							success: function (r) {
-								//输出一下位置信息
-								that.address = r.data.result.address
-								//r.data.result.address获得的就是用户的位置信息，将它保存到一个全局变量上
-								getApp().globalData.locationInfo = r.data.result.address;
-								//这步是将位置信息保存到本地缓存中，key = value的形式
-								try {
-									uni.setStorageSync('locationInfo', r.data.result.address)
-								} catch (e) {
-									console.log(e)
-								}
+								that.address = r.result.pois[0].address
 							}
-						});
+						})		
+						
+						
+						// uni.request({
+						// 	url: 'https://apis.map.qq.com/ws/geocoder/v1/',
+						// 	data: {
+						// 	  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
+						// 	  "location": locationString
+						// 	},
+						// 	method: 'get',
+						// 	success: function (r) {
+						// 		//输出一下位置信息
+						// 		that.address = r.data.result.address
+						// 		//r.data.result.address获得的就是用户的位置信息，将它保存到一个全局变量上
+						// 		getApp().globalData.locationInfo = r.data.result.address;
+						// 		//这步是将位置信息保存到本地缓存中，key = value的形式
+						// 		try {
+						// 			uni.setStorageSync('locationInfo', r.data.result.address)
+						// 		} catch (e) {
+						// 			console.log(e)
+						// 		}
+						// 	}
+						// });
 					}
 				});
 			},

@@ -7,7 +7,7 @@
 			<swiper-item class="swiper-item">
 				<scroll-view scroll-y style="height: 100%;width: 100%;">
 					<view class="page-box">
-						<view class="pending-approval  u-margin-top-20" v-if="pending === true">
+						<view class="pending-approval  u-margin-top-20" v-if="pendinglist.length > 0">
 							<view class="pending-approval-item" v-for="(item, index) in pendinglist" :key="index">
 								<view class="pending-approval-item-avatar">
 									<view class="item-avatar">
@@ -194,8 +194,6 @@
 					second: false
 				},
 				lists: [],
-				pending: false,
-				already: false,
 				pendinglist: [],
 				alreadyList: [],
 				show: false
@@ -251,14 +249,6 @@
 								this.alreadyList.push(res.data.data[i])
 							}
 						}
-						
-						if (this.pendinglist.length > 0) {
-							this.pending = true
-						}
-						
-						if (this.alreadyList.length > 0) {
-							this.already = true
-						}
 					} else {
 						this.$u.toast(res.data.message)
 					}
@@ -276,15 +266,9 @@
 				}).then((res) => {
 					if (res.data.code === 200) {
 						this.show = false
-						let pages = getCurrentPages(); // 当前页面
-						console.log(pages)
-						let beforePage = pages[pages.length - 2]; // 前一个页面
-						console.log(beforePage)
-						// uni.navigateBack({
-						//     success: function() {
-						//         beforePage.onLoad(); // 执行前一个页面的onLoad方法
-						//     }
-						// });
+						this.pendinglist.length = 0
+						this.alreadyList.length = 0
+						this.getDataList()
 					}
 				})
 			},

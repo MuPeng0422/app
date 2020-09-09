@@ -19,7 +19,7 @@
 					<view class="submitBtn">
 						<u-row gutter="16" justify="around">
 							<u-col span="6">
-								<u-button :custom-style="customStyle" size="medium" type="primary" @click="submit">确认注册</u-button>
+								<u-button :custom-style="customStyle" size="medium" type="primary" :throttle-time="2000" @click="submit">确认注册</u-button>
 							</u-col>
 							<u-col span="6">
 								<u-button :custom-style="customStyle" size="medium" type="info" :hair-line="false" @click="cancel">取消</u-button>
@@ -98,7 +98,9 @@
 			})
 		},
 		onShow() {
-			wx.hideHomeButton() 
+			if (uni.hideHomeButton) {
+			   uni.hideHomeButton()
+			}
 		},
 		methods: {
 			...mapMutations(['login']),
@@ -123,10 +125,10 @@
 				this.tips = text
 			},
 			end() {
-				this.$u.toast('倒计时结束')
+				// this.$u.toast('倒计时结束')
 			},
 			start() {
-				this.$u.toast('倒计时开始')
+				// this.$u.toast('倒计时开始')
 			},
 			getCode() {
 				if (this.form.phone !== '') {
@@ -140,7 +142,6 @@
 									'phoneNum': this.form.phone
 								}
 							}).then((res) => {
-								console.log('res', res)
 								if (res.data.data === undefined) {
 									this.$http.get('/sendVerificationCode', {
 										params: {
@@ -174,8 +175,7 @@
 								'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
 							}
 						}).then((res) => {
-							console.log(res)
-							if (res.data.code === 200) {
+							if (res.data.data === 1) {
 								this.$http.post('/phoneLogin', {
 									'phoneNum': this.form.phone,
 									'code': this.form.code
@@ -184,40 +184,50 @@
 										'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;'
 									}
 								}).then((result) => {
-									console.log('result', result)
 									if(result.data.code === 200) {
-										this.$http.post('/user/findUserById', {
-											'userId': result.data.data.user.userId
-										}, {
-											header: {
-												'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
-												'Authentication': result.data.data.token
-											}
-										}).then((datas) => {
-											console.log('datas', datas)
-											let data = {
-												'userInfo': datas.data.data,
-												'token': result.data.data.token
-											}
-											console.log('登录后返回数据', result.data.data)
-											this.login(data)
-											
-											// 判断用户是个人登录还是企业登录 0个人 1企业
-											if (datas.data.data.state === 0) {
-												uni.navigateTo({
-												    url: '/pages/index/index'
-												})
-											} else {
-												uni.navigateTo({
-												    url: '/pages/enterprise/index/index'
-												})
-											}
-											this.$refs.uCode.reset()
-										})
+										
+										if (result.data.data !== undefined) {
+											this.$http.post('/user/findUserById', {
+												'userId': result.data.data.user.userId
+											}, {
+												header: {
+													'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+													'Authentication': result.data.data.token
+												}
+											}).then((results) => {
+												
+												if (results.data.data.unitId === undefined) {
+													results.data.data.unitName = '暂未加入公司'
+												}
+												
+												let data = {
+													'userInfo': results.data.data,
+													'token': result.data.data.token
+												}
+												this.login(data)
+												
+												// 判断用户是个人登录还是企业登录 0个人 1企业
+												if (results.data.data.state === 0) {
+													uni.reLaunch({
+													    url: '/pages/index/index'
+													})
+													this.$refs.uCode.reset()
+												} else {
+													uni.reLaunch({
+													    url: '/pages/enterprise/index/index'
+													})
+													this.$refs.uCode.reset()
+												}
+											})
+										} else {
+											this.$u.toast(result.data.message)
+										}
 									} else {
-										this.$u.toast(res.data.message)
+										this.$u.toast(result.data.message)
 									}
 								})
+							} else {
+								this.$u.toast('手机号已注册')
 							}
 						})
 					} else {
