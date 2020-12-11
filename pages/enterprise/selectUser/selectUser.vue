@@ -72,7 +72,7 @@
 							res.data.data[i].checked = false
 							
 							if (res.data.data[i].userpicPath === undefined) {
-								res.data.data[i].userpicPath = '/static/default_avatar.jpg'
+								res.data.data[i].userpicPath = 'https://xksv.atx.net.cn/xcx_static/default_avatar.jpg'
 							}
 							if (res.data.data[i].findCourse === 0) {
 								res.data.data[i].statusName = '休息'

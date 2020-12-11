@@ -12,7 +12,7 @@
 							<u-input type="number" v-model="form.phone" placeholder="请输入您的手机号码" maxlength="11"/>
 						</u-form-item>
 						<u-form-item label="短信验证码" label-width="150" prop="code">
-							<u-input type="number" v-model="form.code" placeholder="请输入短信验证码" />
+							<u-input type="number" v-model="form.code" placeholder="请输入短信验证码" maxlength="6" />
 							<u-button slot="right" type="success" size="mini" @click="getCode">{{tips}}</u-button>
 						</u-form-item>
 					</u-form>

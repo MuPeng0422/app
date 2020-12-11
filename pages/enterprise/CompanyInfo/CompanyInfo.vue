@@ -43,7 +43,8 @@
 				</view>
 			</view>
 		</u-popup>
-		<u-keyboard ref="uKeyboard" mode="card" v-model="keyBoardShow"></u-keyboard>
+		<!-- <u-keyboard ref="uKeyboard" mode="card" v-model="keyBoardShow"></u-keyboard> -->
+		<u-keyboard ref="uKeyboard" mode="card" v-model="keyBoardShow" @change="valChange" :mask="false" @backspace="backspace"></u-keyboard>
 	</view>
 </template>
 
@@ -71,6 +72,11 @@
 		onLoad() {
 			this.getUserInfo()
 		},
+		onUnload() {
+			let pages = getCurrentPages(); // 当前页面
+			let beforePage = pages[pages.length - 2]; // 前一个页面
+			beforePage.onLoad(); // 执行前一个页面的onLoad方法
+		},
 		methods: {
 			...mapMutations(['login']),
 			getUserInfo() {
@@ -78,7 +84,7 @@
 					key: 'userInfo',  
 					success:(res) => {
 						this.res = res.data
-						
+						console.log('this', this.res)
 						if (res.data.userInfo.unitName === undefined) {
 							this.userInfo.unitName = '请输入单位名称'
 						} else {
@@ -96,12 +102,11 @@
 						this.userInfo.mobile = res.data.userInfo.mobile
 						
 						if (res.data.userInfo.cardId === undefined) {
-							this.userInfo.idcard = '请输入身份证号码'
+							this.userInfo.cardId = '请输入身份证号码'
 						} else {
-							let cardNo = res.data.userInfo.cardId
-							let str = cardNo.substr(6, 8)
-							this.userInfo.cardId = cardNo.replace(str, '********')
 							this.cardId = res.data.userInfo.cardId
+							let str = this.cardId.substr(6, 8)
+							this.userInfo.cardId = this.cardId.replace(str, '********')
 						}
 						
 					}
@@ -113,6 +118,16 @@
 			showModel(type) {
 				this.usernameShow = type
 				this.modelshow = true
+			},
+			// 按键被点击(点击退格键不会触发此事件)
+			valChange(val) {
+				// 将每次按键的值拼接到value变量中，注意+=写法
+				this.cardId += val;
+			},
+			// 退格键被点击
+			backspace() {
+				// 删除value的最后一个字符
+				if(this.cardId.length) this.cardId = this.cardId.substr(0, this.cardId.length - 1);
 			},
 			submit() {
 				let data = {}
@@ -151,13 +166,13 @@
 								this.userInfo.unitName = result.data.data.unitName
 								
 								// 返回刷新
-								let pages = getCurrentPages(); // 当前页面
-								let beforePage = pages[pages.length - 2]; // 前一个页面
-								uni.navigateBack({
-								    success: function() {
-								        beforePage.onLoad(); // 执行前一个页面的onLoad方法
-								    }
-								});
+								// let pages = getCurrentPages(); // 当前页面
+								// let beforePage = pages[pages.length - 2]; // 前一个页面
+								// uni.navigateBack({
+								//     success: function() {
+								//         beforePage.onLoad(); // 执行前一个页面的onLoad方法
+								//     }
+								// });
 							})
 						})
 					}
@@ -198,13 +213,13 @@
 								this.userInfo.realName = result.data.data.realName
 								
 								// 返回刷新
-								let pages = getCurrentPages(); // 当前页面
-								let beforePage = pages[pages.length - 2]; // 前一个页面
-								uni.navigateBack({
-								    success: function() {
-								        beforePage.onLoad(); // 执行前一个页面的onLoad方法
-								    }
-								});
+								// let pages = getCurrentPages(); // 当前页面
+								// let beforePage = pages[pages.length - 2]; // 前一个页面
+								// uni.navigateBack({
+								//     success: function() {
+								//         beforePage.onLoad(); // 执行前一个页面的onLoad方法
+								//     }
+								// });
 							})
 						})
 					}
@@ -243,16 +258,18 @@
 								
 								this.login(userInfo)
 								
-								this.userInfo.cardId = result.data.data.cardId
+								this.cardId = result.data.data.cardId
+								let str = this.cardId.substr(6, 8)
+								this.userInfo.cardId = this.cardId.replace(str, '********')
 								
 								// 返回刷新
-								let pages = getCurrentPages(); // 当前页面
-								let beforePage = pages[pages.length - 2]; // 前一个页面
-								uni.navigateBack({
-								    success: function() {
-								        beforePage.onLoad(); // 执行前一个页面的onLoad方法
-								    }
-								});
+								// let pages = getCurrentPages(); // 当前页面
+								// let beforePage = pages[pages.length - 2]; // 前一个页面
+								// uni.navigateBack({
+								//     success: function() {
+								//         beforePage.onLoad(); // 执行前一个页面的onLoad方法
+								//     }
+								// });
 							})
 						})
 					}

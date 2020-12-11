@@ -83,6 +83,11 @@
 				}
 			})
 		},
+		onUnload() {
+			let pages = getCurrentPages(); // 当前页面
+			let beforePage = pages[pages.length - 2]; // 前一个页面
+			beforePage.onLoad(); // 执行前一个页面的onLoad方法
+		},
 		methods: {
 			getUserList() {
 				this.$http.post('/user/findUserByUnitId', {
@@ -95,10 +100,9 @@
 				}).then((res) => {
 					if (res.data.code === 200) {
 						for (var i = 0; i < res.data.data.length; i++) {
-							console.log(res.data.data[i])
 							res.data.data[i].show = false
 							if (res.data.data[i].userpicPath === undefined) {
-								res.data.data[i].userpicPath = '/static/default_avatar.jpg'
+								res.data.data[i].userpicPath = 'https://xksv.atx.net.cn/xcx_static/img/default_avatar.jpg'
 							}
 							if (res.data.data[i].findCourse === 0) {
 								res.data.data[i].statusName = '休息'
@@ -118,7 +122,7 @@
 			click(index, item) {
 				this.datalist.splice(index, 1);
 				this.$http.post('/user/updateUserInfo', {
-					unitId: 1000000000,
+					unitId: this.res.userInfo.unitId,
 					delUnitFlag: 1,
 					userId: item.userId
 				}, {
@@ -127,7 +131,6 @@
 						'Authentication': this.res.token
 					}
 				}).then((res) => {
-					console.log(res)
 					if (res.data.code === 200) {
 						uni.showToast({
 							title: '删除成功！',
@@ -162,7 +165,6 @@
 							'Authentication': this.res.token
 						}
 					}).then((res) => {
-						console.log(res)
 						if (res.data.code === 200) {
 							if (res.data.data === 0) {
 								this.$u.toast('用户未注册！')
@@ -179,7 +181,6 @@
 											'Authentication': this.res.token
 										}
 									}).then((res) => {
-										console.log(res)
 										if (res.data.code === 200) {
 											this.show = false
 											this.getUserList()

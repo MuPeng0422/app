@@ -32,7 +32,7 @@
 				certList: [
 					{
 						value: 0,
-						label: '营业执照'
+						label: '企业证书'
 					},
 					{
 						value: 1,
@@ -81,7 +81,6 @@
 				this.certSelectTypeShow = true
 			},
 			getCertType(res) {
-				console.log(res)
 				if (res[0].value !== this.certName) {
 					this.fileList.length = 0
 					this.$refs.uUpload.clear()
@@ -89,16 +88,15 @@
 					this.certName = res[0].label
 					this.certType = res[0].value
 					const type = res[0].value
-					console.log(type)
 					if(type === 0) {
-						if (this.certData.transcriptPath !== '' && this.certData.effectiveTime !== '') {
+						if (this.certData.transcriptPath !== undefined && this.certData.effectiveTime !== undefined) {
 							let row = {
 								url: this.certData.transcriptPath
 							}
 							this.fileList.push(row)
 						}
 					} else if (type === 1) {
-						if (this.certData.graduationPath !== '' && this.certData.certificateTime !== '') {
+						if (this.certData.graduationPath !== undefined && this.certData.certificateTime !== undefined) {
 							let row = {
 								url: this.certData.graduationPath
 							}
@@ -108,7 +106,12 @@
 				}
 			},
 			onUploaded(lists, name) {
-				this.fileList = lists;
+				if (this.certName === '请选择证书') {
+					this.$u.toast('请先选择证书')
+					this.$refs.uUpload.remove(0)
+				} else {
+					this.fileList = lists
+				}
 			},
 			submit() {
 				let name = ''

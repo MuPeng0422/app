@@ -3,83 +3,168 @@
 		<view class="u-page">
 			<view class="pageOne" v-if="current === 0">
 				<view class="container">
-					<view class="head" :style="{background: 'url('+ avatarURL +')', backgroundSize: '100%'}">
-						<view class="avatar u-flex">
-							<view class="avatar-img">
-								<u-avatar class="img" :src="userInfo.unitAcceptance" bg-color="#F4F4F5"></u-avatar>
-							</view>
-							<view class="avatar-text">
-								<view class="company">
-									{{ userInfo.unitName }}
-								</view>
-								<view class="name">
-									<text>{{ userInfo.realName }}</text>
-								</view>
-							</view>
+					
+					<!-- 首页头部信息 -->
+					<view class="header-main" :style="'padding-top: '+ top +'px;background: url('+ backgroundImage +'); background-size: 100%;'">
+						<view class="header-title" :style="'height:' + height + 'px;'">
+							高新区消控室人员管理系统
 						</view>
-						<view class="head-btns">
-							<view class="bottons">
-								<u-row justify="space-between">
-									<u-col span="4">
-										<u-button @click="handleClickBtn('goSignRecord')">考勤记录</u-button>
-									</u-col>
-									<u-col span="4">
-										<u-button @click="handleClickBtn('goWorkApproval')">工作审批</u-button>
-									</u-col>
-									<u-col span="4">
-										<u-button @click="handleClickBtn('mailList')">通讯录</u-button>
-									</u-col>
-								</u-row>
+						<view class="header-container">
+							<view class="header-info">
+								<view class="header-avatar" @click="getUserView">
+									<u-image width="100rpx" height="100rpx" :border-radius="10" :src="userInfo.unitAcceptance">
+										<u-loading slot="loading"></u-loading>
+									</u-image>
+								</view>
+								<view class="header-name">
+									<view class="name">
+										<text>{{ userInfo.realName }}</text>
+										<text>{{ userInfo.unitName }}</text>
+									</view>
+								</view>
 							</view>
 						</view>
 					</view>
 					
-					<view class="main">
-						<view class="scheduling-list" v-if="schedulingList.length > 0">
-							<view class="scheduling-list-item" v-for="(item, index) in schedulingList" :key="index" :style="{ background: item.backgroundColor }">
-								<view class="scheduling-list-item-avatar">
-									<u-avatar :src="item.userpicPath" bg-color="#F4F4F5"></u-avatar>
-								</view>
-								<view class="scheduling-list-item-info">
-									<view class="name">
-										<span>{{ item.userName }}</span>
-										<span>{{ item.schedulingName }}</span>
+					<!-- 占位 -->
+					<view class="complate"></view>
+					
+					<view class="newLoading" v-if="show === true">
+						<u-loading mode="flower" size="100" :show="show"></u-loading>
+					</view>
+					<!-- 消息列表 -->
+					<view class="news" v-else>
+						<view class="newsList" v-if="newsList.length > 0">
+							<view class="listItem" v-for="(item, index) in newsList" :key="index" @click="goViewNew(item)">
+								<view class="time">{{ item.creatTime }}</view>
+								<view class="list-item-content-ispic" v-if="item.coursePic !== ''" :style="'background: url('+ item.coursePic +'); background-size: 100%;'">
+									<view class="title">
+										{{ item.courseName }}
 									</view>
-									<view class="list-item-info-cert">
-										<span>{{ item.certType }}</span>
-										<span>{{ item.certDueDate }}</span>
-									</view>
+									
 								</view>
-								<view class="scheduling-list-item-icon">
-									<u-button type="primary" size="mini" :custom-style="customStyle">{{ item.text }}</u-button>
+								<view class="list-item-content-nopic" v-else :style="'background: #000000;'">
+									<view class="title">
+										{{ item.courseName }}
+									</view>
+									<view class="content">
+										{{ item.courseContent }}
+									</view>
 								</view>
 							</view>
 						</view>
-						<view class="scheduling-empty" v-else>
-							<u-empty text="暂无人员排班" mode="list"></u-empty>
+						<view class="noNewsList" v-else>
+							<u-empty text="暂无新闻公告" mode="list"></u-empty>
 						</view>
 					</view>
 				</view>
 			</view>
 			<view class="pageTwo" v-else-if="current === 1">
-				<view class="content-main">
-					<view class="avatar">
-						<view class="avatar-container">
-							<view class="avatar-img">
-								<u-avatar :src="userInfo.unitAcceptance" mode="circle" :size="150"  bg-color="#F4F4F5"></u-avatar>
-							</view>
-							<view class="avatar-name">
-								<text>{{userInfo.realName}}</text>
+				<view class="container">
+					<!-- 首页头部信息 -->
+					<view class="header-main" :style="'padding-top: '+ top +'px;background: url('+ backgroundImage +'); background-size: 100%;'">
+						<view class="header-title" :style="'height:' + height + 'px;'">
+							高新区消控室人员管理系统
+						</view>
+						<view class="header-container">
+							<view class="header-info">
+								<view class="header-avatar" @click="getUserView">
+									<u-image width="100rpx" height="100rpx" :border-radius="10" :src="userInfo.unitAcceptance">
+										<u-loading slot="loading"></u-loading>
+									</u-image>
+								</view>
+								<view class="header-name">
+									<view class="name">
+										<text>{{ userInfo.realName }}</text>
+										<text>{{ userInfo.unitName }}</text>
+									</view>
+								</view>
 							</view>
 						</view>
 					</view>
-					<u-cell-group>
-						<u-cell-item icon="account-fill" title="单位信息" @click="goCompanyInfo"></u-cell-item>
-						<u-cell-item icon="photo" title="个人照片" @click="goPhoto"></u-cell-item>
-						<u-cell-item icon="bookmark-fill" title="营业执照" @click="goBusinessCert"></u-cell-item>
-						<u-cell-item icon="file-text-fill" title="考勤设置" @click="goAttendanceSetting"></u-cell-item>
-						<u-cell-item icon="setting-fill" title="系统设置" @click="goSystem"></u-cell-item>
-					</u-cell-group>
+					
+					<!-- 占位 -->
+					<view class="complate"></view>
+					
+					<!-- 导航按钮 -->
+					<view class="head-btns">
+						<view class="bottons">
+							<u-row justify="space-between">
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('goStudy')">学习</u-button>
+								</u-col>
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('goWorkApproval')">工作审批</u-button>
+								</u-col>
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('goSignRecord')">考勤记录</u-button>
+								</u-col>
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('mailList')">通讯录</u-button>
+								</u-col>
+							</u-row>
+						</view>
+					</view>
+					
+					<view class="scheduling">
+						<view class="scheduling-title">
+							执勤信息
+						</view>
+						<view class="scheduling-list" v-if="schedulingList.length > 0">
+							<view class="scheduling-item" v-for="(item, index) in schedulingList" :key="index">
+								<view class="scheduling-item-avatar">
+									<u-image width="100rpx" height="100rpx" shape="circle" :lazy-load="true" :src="item.UserpicPath">
+									</u-image>
+								</view>
+								<view class="scheduling-item-info">
+									<view class="scheduling-item-info-top">
+										<view class="scheduling-item-info-name">
+											{{ item.RealName }}
+										</view>
+										<view class="scheduling-item-info-status">
+											{{ item.status }}
+										</view>
+									</view>
+									<view class="scheduling-item-info-top">
+										<view class="scheduling-item-info-name">
+											{{ item.certName }}
+										</view>
+										<view class="scheduling-item-info-status">
+											{{ item.schedulingName }}
+										</view>
+									</view>
+								</view>
+							</view>
+						</view>
+						<view class="scheduling-nolist" v-else>
+							<u-empty text="暂无执勤信息" mode="list"></u-empty>
+						</view>
+					</view>
+					
+					<!-- 学习排名 -->
+					<view class="study">
+						<view class="study-title">
+							学习排名
+						</view>
+						<view class="study-list" v-if="studyList.length > 0">
+							<view class="study-list-item" v-for="(item, index) in studyList" :key="index">
+								<view class="study-list-item-avatar">
+									<u-image width="100rpx" height="100rpx" shape="circle" :lazy-load="true" :src="item.userpicPath"></u-image>
+								</view>
+								<view class="study-list-item-info">
+									<view class="study-list-item-info-name">
+										{{ item.userName }}
+									</view>
+									<view class="study-list-item-info-certName">
+										{{ item.certName }}
+									</view>
+								</view>
+								<view class="study-list-item-timelong">
+									总学习时长 {{ item.userCourseNum }} 分钟
+								</view>
+							</view>
+						</view>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -101,40 +186,55 @@
 	export default {
 		data() {
 			return {
+				top: '',
+				height: '',
 				res: {},
 				userInfo: {},
 				current: 0,
 				bgColor: '#ffffff',
 				borderTop: true,
+				backgroundImage: 'https://xksv.atx.net.cn/xcx_static/img/bg.jpg',
 				customStyle: {
 					width: '100rpx'
 				},
 				list: [{
-						iconPath: "home",
-						selectedIconPath: "home-fill",
-						text: '主页'
+						iconPath: "volume-up",
+						selectedIconPath: "volume-up-fill",
+						text: '新闻公告'
 					},
 					{
 						iconPath: "account",
 						selectedIconPath: "account-fill",
-						text: '我的'
+						text: '我的应用'
 					}
 				],
+				show: false,
 				inactiveColor: '#909399',
 				activeColor: '#5098FF',
-				imageURL: '/static/fade.jpg',
+				imageURL: 'https://xksv.atx.net.cn/xcx_static/img/fade.jpg',
 				avatarURL: '',
-				schedulingList: []
+				schedulingList: [],
+				newsList: [],
+				studyList: []
 			}
 		},
 		onLoad() {
+			const navbar = uni.getSystemInfoSync()
+			this.top = navbar.statusBarHeight
+			if(navbar.platform == 'android') {
+				this.height = 48
+			}else {
+				this.height = 44
+			}
+			
 			uni.getStorage({
 				key: 'userInfo',
 				success: (res) => {
-					console.log('res', res)
 					this.res = res.data
 					this.getUserInfo()
 					this.getSchedulingList()
+					this.getNewsList()
+					this.getStudyList()
 				}
 			})
 		},
@@ -147,20 +247,21 @@
 			getUserInfo() {
 				this.userInfo = this.res.userInfo
 				
-				if (this.userInfo.wallpaperPath !== undefined) {
-					this.avatarURL = this.userInfo.wallpaperPath
+				if(this.res.userInfo.wallpaperPath !== undefined) {
+					this.backgroundImage = this.res.userInfo.wallpaperPath
 				} else {
+					let wallpaperPath = this.backgroundImage
 					uni.getFileSystemManager().readFile({
-						filePath: this.imageURL,
+						filePath: wallpaperPath,
 						encoding: 'base64',
 						success: (r) => {
-							this.avatarURL = 'data:image/jpeg;base64,' + r.data
+							this.backgroundImage = 'data:image/jpeg;base64,' + r.data
 						}
 					})
 				}
 				
 				if(this.userInfo.unitAcceptance === undefined) {
-					this.userInfo.unitAcceptance = '/static/default_avatar.jpg'
+					this.userInfo.unitAcceptance = 'https://xksv.atx.net.cn/xcx_static/img/default_avatar.jpg'
 				}
 			},
 			getSchedulingList() {
@@ -175,218 +276,39 @@
 				}).then((res) => {
 					if (res.data.code === 200) {
 						if (res.data.data !== undefined) {
-							// 当前日期
-							let d = new Date()
-							let year = d.getFullYear()
-							let month = '' + (d.getMonth() + 1)
-							let day = '' + d.getDate()
-							if (month < 10) month = '0' + month
-							if (day < 10) day = '0' + day
-							
-							let nowDate = Date.parse(year + '-' + month + '-' + day)
-							
 							for (var i = 0; i < res.data.data.length; i++) {
-								if (res.data.data[i].userpicPath === undefined) {
-									res.data.data[i].userpicPath = '/static/default_avatar.jpg'
+								if (res.data.data[i].UserpicPath === undefined) {
+									res.data.data[i].UserpicPath = 'https://xksv.atx.net.cn/xcx_static/img/default_avatar.jpg'
 								}
 								
-								if (res.data.data[i].effectiveTime === undefined && res.data.data[i].certificateTime === undefined && res.data.data[i].certificatePath === undefined) {
-									res.data.data[i].certType = '未上传证书'
-									res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
-									
-									if (res.data.data[i].pbState === 0) {
-										res.data.data[i].schedulingName = '未排班'
-										res.data.data[i].text = '休息'
-									} else {
-										if (res.data.data[i].applicationState === 0) {
-											if (res.data.data[i].attState === 0) {
-												res.data.data[i].text = '未打卡'
-											} else {
-												res.data.data[i].text = '执勤'
-											}
-										} else {
-											res.data.data[i].text = '请假'
-										}
-									}
+								if (res.data.data[i].PbState === 0) {
+									res.data.data[i].schedulingName = '未排班'
+									res.data.data[i].status = '休息'
 								} else {
-									let dueDate, dateSpan;
-									if (res.data.data[i].effectiveTime !== undefined) {
-										res.data.data[i].certType = '成绩单'
-										dueDate = Date.parse(res.data.data[i].effectiveTime)
-										dateSpan = Math.floor((nowDate - dueDate) / (24*3600*1000))
-										
-										if (dateSpan <= -30) {
-											res.data.data[i].certDueDate = Math.abs(dateSpan) + '天后到期'
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-												res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-														res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
-													} else {
-														res.data.data[i].text = '执勤'
-														res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-													res.data.data[i].backgroundColor = 'linear-gradient(to right, #E1E3E6, #E1E3E6)'
-												}
-											}
-										} else if (dateSpan < 0 && dateSpan > -30) {
-											res.data.data[i].certDueDate = Math.abs(dateSpan) + '天后到期'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-													} else {
-														res.data.data[i].text = '执勤'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-												}
-											}
-										} else if (dateSpan === 0) {
-											res.data.data[i].certDueDate = '今天到期'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-													} else {
-														res.data.data[i].text = '执勤'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-												}
-											}
+									if (res.data.data[i].ApplicationState === 0) {
+										if (res.data.data[i].AttState === 0) {
+											res.data.data[i].status = '未打卡'
 										} else {
-											res.data.data[i].certDueDate = '已过期' + Math.abs(dateSpan) + '天'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-													} else {
-														res.data.data[i].text = '执勤'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-												}
-											}
+											res.data.data[i].status = '执勤中'
 										}
+									} else {
+										res.data.data[i].status = '请假'
+									}
+								}
+								
+								if (res.data.data[i].EffectiveTime === undefined && res.data.data[i].CertificateTime === undefined && res.data.data[i].CertificatePath === undefined) {
+									res.data.data[i].certName = '未上传证书'
+								} else {
+									if (res.data.data[i].EffectiveTime !== undefined) {
+										res.data.data[i].certName = '成绩单'
 									}
 									
-									if (res.data.data[i].certificateTime !== undefined) {
-										res.data.data[i].certType = '结业证'
-										dueDate = Date.parse(res.data.data[i].certificateTime)
-										dateSpan = Math.floor((nowDate - dueDate) / (24*3600*1000))
-										
-										if (dateSpan <= -30) {
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-												res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-														res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
-													} else {
-														res.data.data[i].text = '执勤'
-														res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-													res.data.data[i].backgroundColor = 'linear-gradient(to right, #E1E3E6, #E1E3E6)'
-												}
-											}
-										} else if (dateSpan < 0 && dateSpan > -30) {
-											res.data.data[i].certDueDate = Math.abs(dateSpan) + '天后到期'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #FCCB32, #F78845)'
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-													} else {
-														res.data.data[i].text = '执勤'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-												}
-											}
-										} else if (dateSpan === 0) {
-											res.data.data[i].certDueDate = '今天到期'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-													} else {
-														res.data.data[i].text = '执勤'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-												}
-											}
-										} else {
-											res.data.data[i].certDueDate = '已过期' + Math.abs(dateSpan) + '天'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
-											if (res.data.data[i].pbState === 0) {
-												res.data.data[i].schedulingName = '未排班'
-												res.data.data[i].text = '休息'
-											} else {
-												if (res.data.data[i].applicationState === 0) {
-													if (res.data.data[i].attState === 0) {
-														res.data.data[i].text = '未打卡'
-													} else {
-														res.data.data[i].text = '执勤'
-													}
-												} else {
-													res.data.data[i].text = '请假'
-												}
-											}
-										}
+									if (res.data.data[i].CertificateTime !== undefined) {
+										res.data.data[i].certName = '结业证'
 									}
 									
-									if (res.data.data[i].certificatePath !== undefined) {
-										res.data.data[i].certType = '消防证'
-										if (res.data.data[i].pbState === 0) {
-											res.data.data[i].schedulingName = '未排班'
-											res.data.data[i].text = '休息'
-											res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
-										} else {
-											if (res.data.data[i].applicationState === 0) {
-												if (res.data.data[i].attState === 0) {
-													res.data.data[i].text = '未打卡'
-													res.data.data[i].backgroundColor = 'linear-gradient(to right, #F68711, #E91406)'
-												} else {
-													res.data.data[i].text = '执勤'
-													res.data.data[i].backgroundColor = 'linear-gradient(to right, #7FFAB6, #4CDC8C)'
-												}
-											} else {
-												res.data.data[i].text = '请假'
-												res.data.data[i].backgroundColor = 'linear-gradient(to right, #E1E3E6, #E1E3E6)'
-											}
-										}
+									if (res.data.data[i].CertificatePath !== undefined) {
+										res.data.data[i].certName = '消防证'
 									}
 								}
 								this.schedulingList.push(res.data.data[i])
@@ -398,6 +320,56 @@
 						uni.reLaunch({
 							url: '/pages/login/login'
 						})
+					}
+				})
+			},
+			getNewsList() {
+				this.show = true
+				this.$http.post('course/findTodayNews', {
+					'pageNum': 1,
+					'pageSize': 10
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.code === 200) {
+						this.show = false
+						this.newsList = res.data.data.records
+					}
+				})
+			},
+			getStudyList() {
+				this.studyList = []
+				this.$http.get('course/findUserRanks', {
+					params: {
+						'unitId': this.userInfo.unitId
+					},
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.userJsonArray.length > 0) {
+						for (var i = 0; i < res.data.userJsonArray.length; i++) {
+							if (res.data.userJsonArray[i].effectiveTime === undefined && res.data.userJsonArray[i].certificateTime === undefined && res.data.userJsonArray[i].certificatePath === undefined) {
+								res.data.userJsonArray[i].certName = '未上传证书'
+							} else {
+								if (res.data.userJsonArray[i].effectiveTime !== undefined) {
+									res.data.userJsonArray[i].certName = '成绩单'
+								}
+								
+								if (res.data.userJsonArray[i].certificateTime !== undefined) {
+									res.data.userJsonArray[i].certName = '结业证'
+								}
+								
+								if (res.data.userJsonArray[i].certificatePath !== undefined) {
+									res.data.userJsonArray[i].certName = '消防证'
+								}
+							}
+							this.studyList.push(res.data.userJsonArray[i])
+						}
 					}
 				})
 			},
@@ -414,13 +386,21 @@
 					uni.navigateTo({
 					    url: '/pages/enterprise/mailList/mailList'
 					})
+				} else if(type === 'goStudy') {
+					uni.navigateTo({
+						url: '/pages/enterprise/study/study'
+					})
 				}
 			},
-			beforeSwitch(index) {
-				let page = getCurrentPages().pop(); //跳转页面成功之后
-				if (!page) return;
-				page.onLoad();
-				return true
+			getUserView() {
+				uni.navigateTo({
+				    url: '/pages/enterprise/mypage/mypage'
+				})
+			},
+			goViewNew(val) {
+				uni.navigateTo({
+				    url: '/pages/enterprise/viewNews/viewNews?data=' + encodeURIComponent(JSON.stringify(val))
+				})
 			},
 			goCompanyInfo() {
 				uni.navigateTo({
@@ -453,125 +433,271 @@
 
 <style scoped lang="scss">
 	.content{
-		height: 100%;
-		
 		.u-page{
-			height: calc(100% - 100rpx);
-			
 			.pageOne{
-				height: 100%;
-				
 				.container{
-					padding-top: 10rpx;
-					height: 100%;
 					
-					.head{
+					.header-main{
+						width: 100%;
 						height: 300rpx;
-						background-color: #FFFFFF;
+						padding-top: 300rpx;
+						position: fixed;
+						display: flex;
+						flex-direction: column;
+						justify-content: space-between;
+						z-index: 999;
 						
-						.avatar {
-							height: 150rpx;
-							padding: 20rpx;
-							justify-content: space-between;
-							
-							.avatar-img{
-								width: 100rpx;
-								display: flex;
-								text-align: center;
-								
-								.img{
-									margin: 0 auto;
-									display: flex;
-									align-items: center;
-								}
-							}
-							
-							.avatar-text{
-								flex: 1;
-								padding-left: 10rpx;
-								
-								.name{
-									text{
-										padding-right: 10rpx;
-									}
-								}
-							}
-						}
-						
-						.head-btns{
-							height: 150rpx;
+						.header-title{
 							display: flex;
 							align-items: center;
-							padding: 0 20rpx;
+							padding-left: 20rpx;
+							color: $color;
+						}
+						
+						.header-container{
+							flex: 1;
+							display: flex;
+							padding: 20rpx;
 							
-							.bottons{
-								width: 100%;
+							.header-info{
+								height: 100rpx;
+								display: flex;
+								justify-content: flex-start;
+								
+								.header-avatar{
+									padding: 0 50rpx;
+								}
+								
+								.header-name{
+									display: flex;
+									
+									.name{
+										display: flex;
+										justify-content: space-around;
+										flex-direction: column;
+										color: $color;
+									}
+								}
 							}
 						}
 					}
 					
-					.main{
-						padding: 20rpx 20rpx 100rpx;
-						
-						.scheduling-list{
-							height: 100%;
+					.complate{
+						height: 300rpx;
+					}
+					
+					.noNewsList{
+						padding-top: 50rpx;
+					}
+					
+					.newLoading{
+						padding: 100rpx 0;
+						text-align: center;
+					}
+					
+					.news{
+						.newsList{
+							padding: 20rpx 0;
 							
-							.scheduling-list-item{
-								height: 150rpx;
-								display: flex;
-								align-items: center;
-								margin-bottom: 20rpx;
+							.listItem{
+								padding-top: 20rpx;
 								
-								.scheduling-list-item-avatar{
-									width: 150rpx;
-									height: 150rpx;
-									display: flex;
-									align-items: center;
-									justify-content: center;
+								.time{
+									padding: 10rpx 0;
+									text-align: center;
+									color: #C0C0C0;
 								}
 								
-								.scheduling-list-item-info{
-									flex: 1;
-									padding: 10rpx;
+								.list-item-content-nopic, 
+								.list-item-content-ispic{
+									height: 200rpx;
+									padding: 20rpx;
+								}
+								
+								.list-item-content-nopic{
+									display: flex;
+									flex-direction: column;
+									justify-content: space-between;
 									
-									.name{
-										width: 80%;
+									.title{
+										padding: 10rpx 0;
 										display: flex;
-										justify-content: flex-start;
-										
-										span{
-											padding-right: 20rpx;
-										}
+										align-items: center;
+										font-size: 36rpx;
+										color: #000000;
 									}
 									
-									.list-item-info-cert{
-										width: 80%;
-										display: flex;
-										justify-content: flex-start;
-										
-										span{
-											padding-right: 20rpx;
-										}
+									.content{
+										height: auto;
+										display: -webkit-box;
+										-webkit-box-orient: vertical;
+										-webkit-line-clamp: 2;
+										overflow: hidden;
+										color: #000000;
 									}
 								}
 								
-								.scheduling-list-item-icon{
-									width: 150rpx;
-									display: flex;
-									justify-content: center;
+								.list-item-content-ispic{
+									position: relative;
+									
+									.title{
+										position: absolute;
+										left: 20rpx;
+										bottom: 20rpx;
+										font-size: 36rpx;
+										color: #000000;
+									}
 								}
 							}
-						}
-						
-						.scheduling-empty{
-							height: 500rpx;
 						}
 					}
 				}
 			}
 			
 			.pageTwo{
-				height: 100%;
+				.container{
+					
+					.header-main{
+						width: 100%;
+						height: 300rpx;
+						padding-top: 300rpx;
+						position: fixed;
+						display: flex;
+						flex-direction: column;
+						justify-content: space-between;
+						z-index: 999;
+						
+						.header-title{
+							display: flex;
+							align-items: center;
+							padding-left: 20rpx;
+							color: $color;
+						}
+						
+						.header-container{
+							flex: 1;
+							display: flex;
+							padding: 20rpx;
+							
+							.header-info{
+								height: 100rpx;
+								display: flex;
+								justify-content: flex-start;
+								
+								.header-avatar{
+									padding: 0 50rpx;
+								}
+								
+								.header-name{
+									display: flex;
+									
+									.name{
+										display: flex;
+										justify-content: space-around;
+										flex-direction: column;
+										color: $color;
+									}
+								}
+							}
+						}
+					}
+					
+					.complate{
+						height: 300rpx;
+					}
+					
+					.head-btns{
+						padding: 20rpx 10rpx;
+					}
+					
+					.scheduling{
+						padding: 0 20rpx;
+						
+						.scheduling-title{
+							padding: 20rpx 0;
+							font-weight: bolder;
+						}
+						
+						.scheduling-list{
+							display: flex;
+							flex-wrap: wrap;
+							padding: 10rpx 0;
+							
+							.scheduling-item{
+								width: calc(50% - 5rpx);
+								height: 120rpx;
+								padding: 10rpx;
+								display: flex;
+								align-items: center;
+								justify-content: space-between;
+								background-color: #E1E3E6;
+								
+								&:nth-child(odd) {
+									margin: 0 5rpx 10rpx 0;
+								}
+								
+								&:nth-child(even) {
+									margin: 0 0 10rpx 5rpx;
+								}
+								
+								.scheduling-item-avatar{
+									width: 100rpx;
+								}
+								
+								.scheduling-item-info{
+									padding-left: 10rpx;
+									flex: 1;
+									display: flex;
+									flex-direction: column;
+									
+									.scheduling-item-info-top{
+										display: flex;
+										justify-content: space-between;
+										
+										.scheduling-item-info-name,
+										.scheduling-item-info-schedulingName,
+										.scheduling-item-info-status{
+											font-size: 22rpx;
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					.study{
+						padding: 0 20rpx;
+						
+						.study-title{
+							padding: 20rpx 0;
+							font-weight: bolder;
+						}
+						
+						.study-list{
+							.study-list-item{
+								display: flex;
+								justify-content: space-between;
+								align-items: center;
+								padding: 20rpx;
+								margin-bottom: 20rpx;
+								background-color: #E1E3E6;
+								
+								.study-list-item-avatar{
+									width: 100rpx;
+								}
+								
+								.study-list-item-info{
+									flex: 1;
+									padding-left: 20rpx;
+								}
+								
+								.study-list-item-timelong{
+									width: 300rpx;
+								}
+							}
+						}
+					}
+				}
 				
 				.content-main{
 					height: 100%;

@@ -52,7 +52,8 @@
 							let data = JSON.parse(res.data)
 							
 							if (data.code === 200){
-								this.$u.toast(data.message)
+								this.$u.toast('照片修改成功')
+								
 								this.$http.post('/user/findUserById', {
 									'userId': this.res.userInfo.userId
 								}, {
@@ -66,18 +67,17 @@
 										'userInfo': result.data.data,
 										'token': this.res.token
 									}
-									console.log('刷新的数据', data.userInfo.unitAcceptance)
 									this.login(data)
 									
-									// 返回刷新
-									let pages = getCurrentPages(); // 当前页面
-									
-									let beforePage = pages[pages.length - 2]; // 前一个页面
-									uni.navigateBack({
-									     success: function() {
-									         beforePage.onLoad(); // 执行前一个页面的onLoad方法
-									     }
-									});
+									setTimeout(() => {
+										uni.navigateBack();
+										
+										// 返回刷新
+										let page = getCurrentPages().pop(); //跳转页面成功之后
+										if (!page) return;
+										page.onLoad();
+										return true
+									}, 1000)
 								})
 							}
 						}

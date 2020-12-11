@@ -33,29 +33,24 @@
 			}
 		},
 		onLoad(data) {
-			console.log(data)
 			const item = JSON.parse(decodeURIComponent(data.data));
-			console.log(item)
 			this.itemData = item
 			this.title = this.itemData.courseName
 			this.content = this.itemData.courseContent
 			this.timestamp = Number(this.itemData.courseTimeLong) * this.second
 			
-			console.log(this.timestamp)
-			
 			const row = {
 				'courseId': String(this.itemData.id),
-				'userId': String(this.itemData.userId),
-				'score': this.itemData.courseScore
+				'userId': String(this.itemData.userId)
 			}
 			
-			this.$http.post('/course/studyTodayCourse', row, {
+			this.$http.post('/course/findRecord', row, {
 				header: {
 					'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
 					'Authentication': this.itemData.token
 				}
 			}).then((res) => {
-				if (res.data.data === 1) {
+				if (res.data.data !== undefined) {
 					this.btnShow = false
 					this.timeShow = false
 				}

@@ -13,7 +13,8 @@
 		{
 			"path": "pages/enterprise/index/index",
 			"style": {
-				"navigationBarTitleText": "主页"
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true
 			},
 			"disableScroll": true,
 			"app-plus": {
@@ -24,6 +25,41 @@
 		},
 		{
 			"path": "pages/enterprise/signrecord/signrecord",
+			"style": {
+				"navigationBarTitleText": "考勤记录"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/admin/index",
+			"style": {
+				"navigationBarTitleText": "消防中控室人员管理智慧屏幕"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/studyArticle/studyArticle",
+			"style": {
+				"navigationBarTitleText": "学习详情"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/viewNews/viewNews",
+			"style": {
+				"navigationBarTitleText": "查看新闻"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/study/study",
+			"style": {
+				"navigationBarTitleText": "学习列表"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/enterprise/mypage/mypage",
 			"style": {
 				"navigationBarTitleText": "考勤记录"
 			},
@@ -81,7 +117,7 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "主页"
+				"navigationStyle": "custom"
 			},
 			"disableScroll": true,
 			"app-plus": {
@@ -94,6 +130,13 @@
 			"path": "pages/study/study",
 			"style": {
 				"navigationBarTitleText": "学习"
+			},
+			"disableScroll": true
+		},
+		{
+			"path": "pages/mypage/mypage",
+			"style": {
+				"navigationBarTitleText": "我的"
 			},
 			"disableScroll": true
 		},
@@ -185,13 +228,6 @@
 			"path": "pages/system/system",
 			"style": {
 				"navigationBarTitleText": "系统设置"
-			},
-			"disableScroll": true
-		},
-		{
-			"path": "pages/feedback/feedback",
-			"style": {
-				"navigationBarTitleText": "问题反馈"
 			},
 			"disableScroll": true
 		},

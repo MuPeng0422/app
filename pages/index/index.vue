@@ -3,41 +3,108 @@
 		<view class="u-page">
 			<view class="pageOne" v-if="tabbarCurrent === 0">
 				<view class="container">
-					<view class="head" :style="{background: 'url('+ wallpaperPath +')', backgroundSize: '100%'}">
-						<view class="avatar u-flex">
-							<view class="avatar-img">
-								<u-avatar class="img" :src="userInfo.userpicPath"></u-avatar>
-							</view>
-							<view class="avatar-text">
-								<view class="company">
-									{{ userInfo.unitName }}
+					
+					<!-- 首页头部信息 -->
+					<view class="header-main" :style="'padding-top: '+ top +'px;background: url('+ backgroundImage +'); background-size: 100%;'">
+						<view class="header-title" :style="'height:' + height + 'px;'">
+							高新区消控室人员管理系统
+						</view>
+						<view class="header-container">
+							<view class="header-info">
+								<view class="header-avatar" @click="getUserView">
+									<u-image width="100rpx" height="100rpx" :border-radius="10" :src="userInfo.userpicPath">
+										<u-loading slot="loading"></u-loading>
+									</u-image>
 								</view>
-								<view class="name">
-									<text>{{userInfo.realName}}</text>
-									<u-icon :name="name" size="40" :color="color"></u-icon>
+								<view class="header-name">
+									<view class="name">
+										<text>{{ userInfo.realName }}</text>
+										<text>{{ userInfo.unitName }}</text>
+									</view>
 								</view>
-							</view>
-							<view class="avatar-integral">
-								{{ integral }}积分
 							</view>
 						</view>
-						<view class="head-btns">
-							<view class="bottons">
-								<u-row gutter="16" justify="space-between">
-									<u-col span="3">
-										<u-button type="primary" @click="handleClickBtn('goToWork')">上班打卡</u-button>
-									</u-col>
-									<u-col span="3">
-										<u-button type="primary" @click="handleClickBtn('goOutWork')">下班打卡</u-button>
-									</u-col>
-									<u-col span="3">
-										<u-button type="primary" @click="handleClickBtn('signRecord')">考勤记录</u-button>
-									</u-col>
-									<u-col span="3">
-										<u-button type="primary" @click="handleClickBtn('leave')">请假审批</u-button>
-									</u-col>
-								</u-row>
+					</view>
+					
+					<!-- 占位 -->
+					<view class="complate"></view>
+					
+					<!-- 消息列表 -->
+					<view class="newsList" v-if="newsList.length > 0">
+						<view class="listItem" v-for="(item, index) in newsList" :key="index">
+							<view class="time">{{ item.creatTime }}</view>
+							<view class="list-item-content-nopic" v-if="item.coursePic === ''" :style="'background: #000000;'">
+								<view class="title">
+									{{ item.courseName }}
+								</view>
+								<view class="content">
+									{{ item.courseContent }}
+								</view>
 							</view>
+							<view class="list-item-content-ispic" v-else :style="'background: url('+ item.coursePic +'); background-size: 100%;'">
+								<view class="title">
+									{{ item.courseName }}
+								</view>
+							</view>
+						</view>
+					</view>
+					
+					<!-- 无消息 -->
+					<view class="noNewsList" v-else>
+						<u-empty text="暂无新闻公告" mode="list"></u-empty>
+					</view>
+				</view>
+			</view>
+			<view class="pageTwo" v-else-if="tabbarCurrent === 1">
+				
+				<view class="container">
+					
+					<!-- 首页头部信息 -->
+					<view class="header-main" :style="'padding-top: '+ top +'px;background: url('+ backgroundImage +'); background-size: 100%;'">
+						<view class="header-title" :style="'height:' + height + 'px;'">
+							高新区消控室人员管理系统
+						</view>
+						<view class="header-container">
+							<view class="header-info">
+								<view class="header-avatar" @click="getUserView">
+									<u-image width="100rpx" height="100rpx" :border-radius="10" :src="userInfo.userpicPath">
+										<u-loading slot="loading"></u-loading>
+									</u-image>
+								</view>
+								<view class="header-name">
+									<view class="name">
+										<text>{{ userInfo.realName }}</text>
+										<text>{{ integral }} 积分</text>
+									</view>
+									<view class="integral">
+										<text class="unitName">{{ userInfo.unitName }}</text>
+										<u-icon name="checkmark-circle" size="40" :color="color"></u-icon>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
+					
+					<!-- 占位 -->
+					<view class="complate"></view>
+					
+					<!-- 导航按钮 -->
+					<view class="head-btns">
+						<view class="bottons">
+							<u-row justify="space-between">
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('goToWork')">上班打卡</u-button>
+								</u-col>
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('goOutWork')">下班打卡</u-button>
+								</u-col>
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('signRecord')">考勤记录</u-button>
+								</u-col>
+								<u-col span="3">
+									<u-button type="primary" @click="handleClickBtn('leave')">请假审批</u-button>
+								</u-col>
+							</u-row>
 						</view>
 					</view>
 					
@@ -48,7 +115,7 @@
 							</view>
 							<swiper class="swiper" :current="swiperCurrent" @transition="transition" @animationfinish="animationfinish">
 								<swiper-item class="swiper-item">
-									<scroll-view scroll-y class="swiper-item-scroll" @scrolltolower="reachBottom">
+									<scroll-view scroll-y class="swiper-item-scroll">
 										<view class="isLogin" v-if="isSignIn">
 											<view v-for="(item,index) in courseList" class="dataList" :key="index">
 												<view class="dataListItem u-flex u-row-between" v-if="item.coursePic !== ''">
@@ -88,7 +155,6 @@
 												</view>
 											</view>
 											<u-empty text="数据为空" mode="data" v-if="courseList.length === 0"></u-empty>
-											<u-loadmore :status="loadStatus[0]" bgColor="#f2f2f2" v-if="courseList.length >= 5"></u-loadmore>
 										</view>
 										<view class="noLogin" v-else>
 											<view class="patchsign">
@@ -140,44 +206,12 @@
 													</view>
 												</view>
 											</view>
-											<view class="dataList weekly">
-												<view class="item-info">
-													<view class="item-info-title">
-														每周答题
-													</view>
-													<view class="btn">
-														<u-button type="primary" @click="startExam(1)">立即答题</u-button>
-													</view>
-												</view>
-											</view>
 										</view>
 									</scroll-view>
 								</swiper-item>
 							</swiper>
 						</view>
 					</view>
-				</view>
-			</view>
-			<view class="pageTwo" v-else-if="tabbarCurrent === 1">
-				<view class="content-main">
-					<view class="avatar">
-						<view class="avatar-container">
-							<view class="avatar-img">
-								<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150"></u-avatar>
-							</view>
-							<view class="avatar-name">
-								<text>{{userInfo.realName}}</text>
-								<u-icon name="checkmark-circle" size="40" :color="color"></u-icon>
-							</view>
-						</view>
-					</view>
-					<u-cell-group>
-						<u-cell-item icon="account-fill" title="个人信息" @click="goUserInfo"></u-cell-item>
-						<u-cell-item icon="photo" title="个人照片" @click="goPhoto"></u-cell-item>
-						<u-cell-item icon="bookmark-fill" title="个人证书" @click="goPersonalCert"></u-cell-item>
-						<u-cell-item icon="file-text-fill" title="学习报告" @click="goStudyReport"></u-cell-item>
-						<u-cell-item icon="setting-fill" title="系统设置" @click="goSystem"></u-cell-item>
-					</u-cell-group>
 				</view>
 			</view>
 		</view>
@@ -294,25 +328,27 @@
 		data() {
 			return {
 				res: {},
+				top: '',
+				height: '',
 				isSignIn: true,
 				tabbarCurrent: 0,
-				bgColor: '#ffffff',
+				bgColor: '#000000',
 				borderTop: true,
+				backgroundImage: 'https://xksv.atx.net.cn/xcx_static/img/bg.jpg',
 				tabbarList: [{
-						iconPath: "home",
-						selectedIconPath: "home-fill",
-						text: '首页'
+						iconPath: "volume-up",
+						selectedIconPath: "volume-up-fill",
+						text: '新闻公告'
 					},
 					{
 						iconPath: "account",
 						selectedIconPath: "account-fill",
-						text: '我的'
+						text: '我的应用'
 					}
 				],
-				inactiveColor: '#909399',
+				inactiveColor: '#C09964',
 				activeColor: '#5098FF',
 				text: '无头像',
-				wallpaperPath: '',
 				name: 'checkmark-circle',
 				color: '',
 				userInfo: {},
@@ -330,26 +366,33 @@
 				],
 				courseList: [],
 				data: [],
-				loadStatus: ['loadmore', 'loading', 'nomore'],
 				pageNo: 1,
 				pageSize: 10,
 				modelshow: false,
 				xbtitle: '您今日还有未完成任务，完成后才能打卡哦~',
 				timelong: '9/15',
-				schedulingList: []
+				schedulingList: [],
+				newsList: []
 			}
 		},
 		onLoad() {
+			const navbar = uni.getSystemInfoSync()
+			this.top = navbar.statusBarHeight
+			if(navbar.platform == 'android') {
+				this.height = 48
+			}else {
+				this.height = 44
+			}
+			
 			uni.getStorage({
 				key: 'userInfo',
 				success: (res) => {
 					this.res = res.data
-				
-					
 					this.getUserInfo()
 					this.getStudyData()
 					this.getScheduling()
 					this.getIntegral()
+					this.getTodayNews()
 				}
 			})
 		},
@@ -379,7 +422,7 @@
 			getUserInfo() {
 				this.userInfo = this.res.userInfo
 				if (this.userInfo.userpicPath === undefined) {
-					this.userInfo.userpicPath = '/static/default_avatar.jpg'
+					this.userInfo.userpicPath = 'https://xksv.atx.net.cn/xcx_static/img/default_avatar.jpg'
 				}
 				
 				if (this.userInfo.realName === undefined) {
@@ -393,16 +436,7 @@
 				}
 				
 				if(this.res.userInfo.wallpaperPath !== undefined) {
-					this.wallpaperPath = this.res.userInfo.wallpaperPath
-				} else {
-					let wallpaperPath = '/static/fade.jpg'
-					uni.getFileSystemManager().readFile({
-						filePath: wallpaperPath,
-						encoding: 'base64',
-						success: (r) => {
-							this.wallpaperPath = 'data:image/jpeg;base64,' + r.data
-						}
-					})
+					this.backgroundImage = this.res.userInfo.wallpaperPath
 				}
 				
 				if (this.userInfo.certificateState === 0) {
@@ -439,6 +473,27 @@
 					}
 				})
 			},
+			getTodayNews() {
+				this.$http.post('course/findTodayNews', {
+					'pageNum': 1,
+					'pageSize': 10
+				}, {
+					header: {
+						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+						'Authentication': this.res.token
+					}
+				}).then((res) => {
+					if (res.data.code === 200) {
+						this.newsList = res.data.data.records
+					}
+				}).catch((err) => {
+					if (err.data.code === 401) {
+						uni.reLaunch({
+							url: '/pages/login/login'
+						})
+					}
+				})
+			},
 			startStudy(val) {
 				val.userId = this.res.userInfo.userId
 				val.token = this.res.token
@@ -450,6 +505,11 @@
 				this.modelshow = false
 				uni.navigateTo({
 				    url: '/pages/gooutwork/gooutwork'
+				})
+			},
+			getUserView() {
+				uni.navigateTo({
+				    url: '/pages/mypage/mypage'
 				})
 			},
 			startExam(type) {
@@ -489,8 +549,14 @@
 						'Authentication': this.res.token,
 					}
 				}).then((res) => {
-					this.courseList = res.data.data.records
-					this.loadStatus.splice(this.current, 1, "loadmore")
+					if (res.data.data.records !== undefined) {
+						for (var i = 0; i < res.data.data.records.length; i++) {
+							if (res.data.data.records[i].courseScore === undefined) {
+								res.data.data.records[i].courseScore = 0
+							}
+							this.courseList.push(res.data.data.records[i])
+						}
+					}
 				}).catch((err) => {
 					if (err.data.code === 401) {
 						uni.reLaunch({
@@ -517,43 +583,47 @@
 				this.swiperCurrent = current;
 				this.current = current;
 			},
-			reachBottom() {
-				this.loadStatus.splice(this.current,1,"loading")
-				setTimeout(() => {
-					if (this.current === 0) {
-						this.pageNo++
-						this.getStudyData()
-					}
-				}, 1200)
-			},
 			handleClickBtn(type) {
-				if (type === 'goToWork') {
-					if (this.schedulingList.length > 0) {
+				if (this.userInfo.unitId === undefined || this.userInfo.unitId === 1000000000) {
+					if (type === 'goToWork' || type === 'goOutWork' || type === 'leave') {
+						this.$u.toast('请先加入公司')
+					} else if (type === 'signRecord') {
 						uni.navigateTo({
-						    url: '/pages/gotowork/gotowork'
+						    url: '/pages/signrecord/signrecord?data=' + encodeURIComponent(JSON.stringify(this.res))
 						})
-					} else {
-						this.$u.toast('今日暂无排班')
-						return
 					}
-				} else if (type === 'goOutWork') {
+				} else {
 					if (this.schedulingList.length > 0) {
-						this.modelshow = true
+						if (type === 'goToWork') {
+							uni.navigateTo({
+							    url: '/pages/gotowork/gotowork'
+							})
+						} else if (type === 'goOutWork') {
+							this.modelshow = true
+						} else if (type === 'signRecord') {
+							uni.navigateTo({
+							    url: '/pages/signrecord/signrecord?data=' + encodeURIComponent(JSON.stringify(this.res))
+							})
+						} else if (type === 'leave') {
+							uni.navigateTo({
+							    url: '/pages/leave/leave'
+							})
+						}
 					} else {
-						this.$u.toast('今日暂无排班')
-						return
+						if(type === 'signRecord') {
+							uni.navigateTo({
+							    url: '/pages/signrecord/signrecord?data=' + encodeURIComponent(JSON.stringify(this.res))
+							})
+						} else if (type === 'leave') {
+							uni.navigateTo({
+							    url: '/pages/leave/leave'
+							})
+						} else {
+							this.$u.toast('暂无排班')
+						}
 					}
 				}
 				
-				if(type === 'signRecord') {
-					uni.navigateTo({
-					    url: '/pages/signrecord/signrecord?data=' + encodeURIComponent(JSON.stringify(this.res))
-					})
-				} else if(type === 'leave') {
-					uni.navigateTo({
-					    url: '/pages/leave/leave'
-					})
-				}
 			},
 			show() {
 				this.$refs.uToast.show({
@@ -605,69 +675,199 @@
 
 <style scoped lang="scss">
 	.content{
-		height: 100%;
-		
 		.u-page{
-			height: calc(100% - 100rpx);
-			
 			.pageOne{
-				height: 100%;
-				
 				.container{
-					padding-top: 10rpx;
-					height: 100%;
 					
-					.head{
+					.header-main{
+						width: 100%;
 						height: 300rpx;
-						background-color: #FFFFFF;
+						padding-top: 300rpx;
+						position: fixed;
+						display: flex;
+						flex-direction: column;
+						justify-content: space-between;
+						z-index: 999;
 						
-						.avatar {
-							height: 150rpx;
-							padding: 20rpx 10rpx;
-							justify-content: space-between;
+						.header-title{
+							display: flex;
+							align-items: center;
+							padding-left: 20rpx;
+							color: $color;
+						}
+						
+						.header-container{
+							flex: 1;
+							display: flex;
+							padding: 20rpx;
 							
-							.avatar-img{
-								width: 100rpx;
+							.header-info{
+								height: 100rpx;
 								display: flex;
-								text-align: center;
+								justify-content: flex-start;
 								
-								.img{
-									margin: 0 auto;
-									display: flex;
-									align-items: center;
+								.header-avatar{
+									padding: 0 50rpx;
 								}
-							}
-							
-							.avatar-text{
-								flex: 1;
-								padding-left: 10rpx;
 								
-								.name{
+								.header-name{
 									display: flex;
-									align-items: center;
 									
-									text{
-										padding-right: 10rpx;
+									.name{
+										display: flex;
+										justify-content: space-around;
+										flex-direction: column;
+										color: $color;
+									}
+									
+									.integral{
+										
 									}
 								}
 							}
-							
-							.avatar-integral{
-								padding-right: 10rpx;
-								font-weight: bolder;
-								color: #fa3534;
-							}
-						}
-						
-						.head-btns{
-							height: 150rpx;
-							display: flex;
-							align-items: center;
 						}
 					}
 					
+					.complate{
+						height: 300rpx;
+					}
+					
+					.noNewsList{
+						padding-top: 50rpx;
+					}
+					
+					.newsList{
+						padding: 20rpx 0;
+						
+						.listItem{
+							padding-top: 20rpx;
+							
+							.time{
+								padding: 10rpx 0;
+								text-align: center;
+								color: $color;
+							}
+							
+							.list-item-content-nopic, 
+							.list-item-content-ispic{
+								height: 200rpx;
+								padding: 20rpx;
+							}
+							
+							.list-item-content-nopic{
+								display: flex;
+								flex-direction: column;
+								justify-content: space-between;
+								
+								.title{
+									padding: 10rpx 0;
+									display: flex;
+									align-items: center;
+									font-size: 36rpx;
+									color: $color;
+								}
+								
+								.content{
+									height: auto;
+									display: -webkit-box;
+									-webkit-box-orient: vertical;
+									-webkit-line-clamp: 2;
+									overflow: hidden;
+									color: $color;
+								}
+							}
+							
+							.list-item-content-ispic{
+								position: relative;
+								
+								.title{
+									position: absolute;
+									left: 20rpx;
+									bottom: 20rpx;
+									font-size: 36rpx;
+									color: $color;
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			.pageTwo{
+				.container{
+					
+					.header-main{
+						width: 100%;
+						height: 300rpx;
+						padding-top: 300rpx;
+						position: fixed;
+						display: flex;
+						flex-direction: column;
+						justify-content: space-between;
+						z-index: 999;
+						
+						.header-title{
+							display: flex;
+							align-items: center;
+							padding-left: 20rpx;
+							color: $color;
+						}
+						
+						.header-container{
+							flex: 1;
+							display: flex;
+							padding: 20rpx;
+							
+							.header-info{
+								width: 100%;
+								height: 100rpx;
+								display: flex;
+								justify-content: flex-start;
+								
+								.header-avatar{
+									width: 200rpx;
+									padding: 0 50rpx;
+								}
+								
+								.header-name{
+									width: calc(100% - 300rpx);
+									display: flex;
+									flex-direction: column;
+									justify-content: space-around;
+									
+									.name{
+										display: flex;
+										justify-content: space-between;
+										color: $color;
+									}
+									
+									.integral{
+										display: flex;
+										align-items: center;
+										color: $color;
+										
+										.unitName{
+											padding-right: 20rpx;
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					.complate{
+						height: 300rpx;
+					}
+					
+					.head-btns{
+						padding: 20rpx 10rpx;
+					}
+					
+					
+					
 					.main{
-						height: calc(100% - 300rpx);
+						height: 800rpx;
+						
 						.bottons{
 							padding: 10rpx 0;
 						}
@@ -764,15 +964,10 @@
 										height: 100%;
 										
 										.everyday{
-											background: $every-day-base64;
+											background: url('https://xksv.atx.net.cn/xcx_static/img/timg01.jpg');
 										}
 										
-										.weekly{
-											background: $weekly;
-										}
-										
-										.everyday,
-										.weekly{
+										.everyday{
 											display: flex;
 											justify-content: center;
 											align-items: center;
@@ -863,10 +1058,6 @@
 						}
 					}
 				}
-			}
-			
-			.pageTwo{
-				height: 100%;
 				
 				.content-main{
 					height: 100%;

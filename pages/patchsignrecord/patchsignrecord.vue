@@ -58,7 +58,6 @@
 		},
 		methods: {
 			getItem(obj) {
-				console.log(obj)
 				this.show = true
 				this.time = obj.time
 				this.reason = obj.reason

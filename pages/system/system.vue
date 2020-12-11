@@ -8,7 +8,7 @@
 				<u-cell-item title="退出登录" :arrow="false" @click="showModel"></u-cell-item>
 			</u-cell-group>
 			<view class="version">
-				系统版本 V1.0.0
+				系统版本 V{{ version }}
 			</view>
 		</view>
 		<u-modal ref="uModal" v-model="show" :show-cancel-button="true" :async-close="asyncClose" :content="content" @confirm="signOut"></u-modal>
@@ -21,8 +21,18 @@
 		data() {
 			return {
 				show: false,
-				content: '确定退出吗？'
+				content: '确定退出吗？',
+				version: '1.0.0'
 			}
+		},
+		onLoad() {
+			const accountInfo = uni.getAccountInfoSync();
+			this.version = accountInfo.miniProgram.version
+		},
+		onUnload() {
+			let pages = getCurrentPages(); // 当前页面
+			let beforePage = pages[pages.length - 2]; // 前一个页面
+			beforePage.onLoad(); // 执行前一个页面的onLoad方法
 		},
 		methods: {
 			...mapMutations(['logout']),
@@ -45,7 +55,6 @@
 				this.show = true
 			},
 			signOut() {
-				console.log('您已退出')
 				this.logout()
 				uni.reLaunch({
 				    url: '/pages/login/login'

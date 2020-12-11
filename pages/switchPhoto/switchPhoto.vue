@@ -49,7 +49,12 @@
 						let data = JSON.parse(res.data)
 						
 						if (data.code === 200){
-							this.$u.toast(data.message)
+							uni.showToast({
+								title: '更换壁纸成功！',
+								icon: 'block',
+								duration: 2000
+							})
+							
 							this.$http.post('/user/findUserById', {
 								'userId': this.res.userInfo.userId
 							}, {

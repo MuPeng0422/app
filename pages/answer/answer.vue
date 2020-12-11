@@ -42,13 +42,13 @@
 			</view>
 			<view class="answer-btn">
 				<view class="btn" v-if="prev">
-					<u-button @click="handleClickPrev">上一题</u-button>
+					<u-button :disabled="disabled" @click="handleClickPrev">上一题</u-button>
 				</view>
 				<view class="btn" v-if="next">
 					<u-button @click="handleClickNext">下一题</u-button>
 				</view>
 				<view class="btn" v-if="submit">
-					<u-button type="primary" @click="handleClickSubmit">提交</u-button>
+					<u-button type="primary" :loading="loading" @click="handleClickSubmit">提交</u-button>
 				</view>
 			</view>
 		</view>
@@ -86,6 +86,8 @@
 				prev: false,
 				next: true,
 				submit: false,
+				loading: false,
+				disabled: false,
 				activeIndex: 1,
 				subjectTotal: 0,
 				timestamp: 86400,
@@ -141,12 +143,16 @@
 					}
 					data.push(row)
 				}
+				this.loading = true
+				this.disabled = true
 				this.$http.post('/question/submitQuestin', data, {
 					header: {
 						'Authentication': this.res.token
 					}
 				}).then((res) => {
 					if (res.data.code === 200) {
+						this.loading = false
+						this.disabled = false
 						uni.showToast({
 							title: res.data.message,
 							icon: 'block',

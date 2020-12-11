@@ -7,4 +7,5 @@ export {
 }
 
 http.config.baseURL = 'https://xks.atx.net.cn'
-// http.config.baseURL = 'http://192.168.0.54:9527'
+// http.config.baseURL = 'http://192.168.0.67:9527' // 李鑫
+// http.config.baseURL = 'http://192.168.0.116:9527' // 王洪伟

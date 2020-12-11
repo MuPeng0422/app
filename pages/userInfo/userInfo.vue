@@ -28,7 +28,7 @@
 						身份证号码：
 					</view>
 					<view class="input">
-						<u-input v-model="cardNo" type="text" maxlength="18" :border="true" :disabled="true" @click="showCardKeyBoard"/>
+						<u-input v-model="cardNo" type="text" placeholder="身份证号码" maxlength="18" :border="true" :disabled="true" @click="showCardKeyBoard"/>
 					</view>
 				</view>
 				<view class="submitBtn">
@@ -63,6 +63,11 @@
 		},
 		onLoad() {
 			this.getUserInfo()
+		},
+		onUnload() {
+			let pages = getCurrentPages(); // 当前页面
+			let beforePage = pages[pages.length - 2]; // 前一个页面
+			beforePage.onLoad(); // 执行前一个页面的onLoad方法
 		},
 		methods: {
 			...mapMutations(['login']),
@@ -155,7 +160,6 @@
 							'Authentication': this.res.data.token
 						}
 					}).then((result) => {
-						console.log('result', result)
 						
 						let userInfo = {
 							'userInfo': result.data.data,
@@ -165,17 +169,12 @@
 						this.login(userInfo)
 						
 						this.userInfo.username = result.data.data.realName
-						this.userInfo.idcard = result.data.data.cardId
 						
-						// 返回刷新
-						
-						let pages = getCurrentPages(); // 当前页面
-						let beforePage = pages[pages.length - 2]; // 前一个页面
-						uni.navigateBack({
-						    success: function() {
-						        beforePage.onLoad(); // 执行前一个页面的onLoad方法
-						    }
-						});
+						if (result.data.data.cardId !== undefined) {
+							this.cardNo = result.data.data.cardId
+							let str = this.cardNo.substr(6, 8)
+							this.userInfo.idcard = this.cardNo.replace(str, '********')
+						}
 					})
 				})
 			}

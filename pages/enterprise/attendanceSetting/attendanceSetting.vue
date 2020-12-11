@@ -26,7 +26,12 @@
 					style="width: 100%; height: 300rpx;"
 					:markers="markers"
 					@tap="getAddress"
-				></map>
+				>
+					<cover-view class="positon" style="position: absolute; top: 20rpx; right: 20rpx;  width: 50rpx; height: 50rpx;" @click="controltap(objPosition)">
+						<cover-image src="https://xksv.atx.net.cn/xcx_static/img/position.png"></cover-image>
+					</cover-view>
+				</map>
+				
 			</view>
 		</view>
 		<view class="setting-scheduling">
@@ -85,7 +90,7 @@
 		</view>
 		<view class="submitBtn">
 			<view class="btn">
-				<u-button type="primary" @click="submitSchduling">添加班次</u-button>
+				<u-button type="primary" @click="submitSchduling" :throttle-time="2000" >添加班次</u-button>
 			</view>
 		</view>
 		<u-picker v-model="startTimeShow" :params="params" :default-time="defaultTime" mode="time" @confirm="startTimeConfirm"></u-picker>
@@ -127,8 +132,8 @@
 				// 标记点
 				markers: [{
 					id: 1,
-					latitude: 23.099994,
-					longitude: 113.324520,
+					latitude: 34.237681,
+					longitude: 108.942241,
 					name: 'T.I.T 创意园'
 				}],
 				defaultTime: '',
@@ -138,11 +143,11 @@
 				endTime: '',
 				dateShow: false,
 				startTimeShow: false,
-				stopTimeShow: false
+				stopTimeShow: false,
+				objPosition: {}
 			}
 		},
 		onLoad() {
-			
 			uni.getStorage({
 				key: 'userInfo',
 				success: (res) => {
@@ -170,7 +175,6 @@
 				let usersArr = []
 				let usersIds = []
 				for (var i = 0; i < this.usersList.length; i++) {
-					console.log(this.usersList[i].userId)
 					usersIds.push(this.usersList[i].userId)
 					usersArr.push(this.usersList[i].realName)
 				}
@@ -186,11 +190,9 @@
 				this.stopTimeShow = true
 			},
 			startTimeConfirm(e) {
-				console.log(e)
 				this.startTime = e.hour + ':' + e.minute
 			},
 			stopTimeConfirm(e) {
-				console.log(e)
 				this.endTime = e.hour + ':' + e.minute
 			},
 			selectUsers() {
@@ -202,10 +204,12 @@
 				this.dateShow = true
 			},
 			change(e) {
-				console.log(e)
 				this.dateRange = e.startDate + ' 至 ' + e.endDate
 				this.startDate = e.startDate
 				this.endDate = e.endDate
+			},
+			controltap(obj) {
+				this.toLocation(obj)
 			},
 			submitSchduling() {
 				let data = {
@@ -221,14 +225,16 @@
 					'address': this.address
 				}
 				
-				console.log(data)
-				this.$http.post('/scheduling/addScheduling', data, {
-					header: {
-						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
-						'Authentication': this.res.token
-					}
-				}).then((res) => {
-					if (res.data.code === 200 && res.data.data === 1) {
+				if (this.startDate === '' && this.endDate === '' && this.startTime === '' && this.endTime === '' && this.longitude === '' && this.latitude === '' && this.usersIds === '' && this.range === '' && this.schedulingName === '' && this.address === '') {
+					this.$u.toast('请完善考勤信息')
+					return false
+				} else {
+					this.$http.post('/scheduling/addScheduling', data, {
+						header: {
+							'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
+							'Authentication': this.res.token
+						}
+					}).then((res) => {
 						uni.showToast({
 							title: res.data.message,
 							icon: 'block',
@@ -244,11 +250,8 @@
 								}, 1000)
 							}
 						})
-						
-					} else {
-						this.$u.toast(res.data.message)
-					}
-				})
+					})
+				}
 			},
 			// 位置授权
 			getAuthorizeInfo(){
@@ -268,26 +271,13 @@
 				uni.getLocation({
 					type: 'gcj02',
 					success (res) {
+						self.objPosition = res
 						// 移动到当前位置
 						self.toLocation(res)
 						self.latitude = res.latitude;
 						self.longitude = res.longitude;
 						
 						var locationString = res.latitude + "," + res.longitude;
-						// uni.request({
-						// 	url: 'https://apis.map.qq.com/ws/geocoder/v1/',
-						// 	data: {
-						// 	  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
-						// 	  "location": locationString
-						// 	},
-						// 	method: 'get',
-						// 	success: function (r) {
-						// 		//输出一下位置信息
-						// 		self.address = r.data.result.address
-								
-						// 		console.log(self.address)
-						// 	}
-						// });
 						QQMapWX.reverseGeocoder({
 							location: {
 							  latitude: self.latitude,
@@ -379,7 +369,6 @@
 
 <style lang="scss" scoped>
 	.content{
-		height: 100%;
 		padding: 20rpx;
 		background-color: #FFFFFF;
 		

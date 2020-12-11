@@ -1,10 +1,10 @@
 <template>
 	<view class="content">
 		<view class="content-main">
-			<view class="avatar">
+			<view class="avatar" :style="'background: url('+ backgroundImage +'); background-size: 100%;'">
 				<view class="avatar-container">
 					<view class="avatar-img">
-						<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150" @click="getAvatar"></u-avatar>
+						<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150"></u-avatar>
 					</view>
 					<view class="avatar-name">
 						<text>{{userInfo.realName}}</text>
@@ -30,10 +30,11 @@
 			return {
 				res: {},
 				userInfo: {},
-				color: ''
+				color: '',
+				backgroundImage: 'https://xksv.atx.net.cn/xcx_static/img/bg.jpg'
 			}
 		},
-		onReady() {
+		onLoad() {
 			uni.getStorage({
 				key: 'userInfo',
 				success: (res) => {
@@ -48,59 +49,24 @@
 					} else if (res.data.userInfo.certificateState === 2) {
 						this.color = '#909399'
 					}
+					
+					if (this.userInfo.userpicPath === undefined) {
+						this.userInfo.userpicPath = 'https://xksv.atx.net.cn/xcx_static/img/default_avatar.jpg'
+					}
+					
+					if(this.userInfo.wallpaperPath !== undefined) {
+						this.backgroundImage = this.userInfo.wallpaperPath
+					}
 				}
 			})
 		},
+		onUnload() { // 返回刷新
+			let pages = getCurrentPages(); // 当前页面
+			let beforePage = pages[pages.length - 2]; // 前一个页面
+			beforePage.onLoad(); // 执行前一个页面的onLoad方法
+		},
 		methods: {
 			...mapMutations(['login']),
-			getAvatar() {
-				uni.chooseImage({
-					sourceType: ['camera'],
-					success: (res) => {
-						this.userInfo.userpicPath = res.tempFilePaths[0]
-						
-						uni.uploadFile({
-							url: this.$http.config.baseURL + '/user/updateUserInfo',    
-							filePath: this.userInfo.userpicPath,
-							name: 'userPicFile',
-							header: {
-								'Content-Type': 'multipart/form-data',
-								'Authentication': this.res.token,
-							},
-							formData: {
-								'userId': this.res.userInfo.userId
-							},
-							success: (res) =>{
-								let data = JSON.parse(res.data)
-								if (data.code === 200){
-									this.$u.toast(data.message)
-									this.$http.post('/user/findUserById', {
-										'userId': this.res.userInfo.userId
-									}, {
-										header: {
-											'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8;',
-											'Authentication': this.res.token
-										}
-									}).then((result) => {
-										
-										console.log('result', result)
-										let data = {
-											'userInfo': result.data.data,
-											'token': this.res.token
-										}
-										this.login(data)
-										
-										let page = getCurrentPages().pop(); //跳转页面成功之后
-										if (!page) return;
-										page.onLoad();
-										return true
-									})
-								}
-							}
-						})
-					}
-				})
-			},
 			goUserInfo() {
 				uni.navigateTo({
 				    url: '/pages/userInfo/userInfo'
@@ -146,13 +112,17 @@
 				justify-content: center;
 				
 				.avatar-container{
-					
+					.avatar-img{
+						display: flex;
+						justify-content: center;
+					}
 					.avatar-name{
 						display: flex;
 						align-items: center;
 						justify-content: center;
 						
 						text{
+							color: $color;
 							padding-right: 10rpx;
 						}
 					}

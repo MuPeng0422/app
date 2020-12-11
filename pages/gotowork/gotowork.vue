@@ -145,7 +145,6 @@
 					},
 					fail(){    // 拒绝授权
 						that.openConfirm();
-						console.log("你拒绝了授权，无法获得周边信息")
 					}
 				})
 			},
@@ -167,26 +166,9 @@
 							get_poi: 1,
 							poi_options: 'policy=2;radius=3000;page_size=20;page_index=1',
 							success: function (r) {
-								console.log(r.result)
 								that.location = r.result.pois[0].address
 							}
-						})				
-										
-						// uni.request({
-						// 	url: 'https://apis.map.qq.com/ws/geocoder/v1/',
-						// 	data: {
-						// 	  "key": "643BZ-56QK5-ZFEIH-QJRKV-YMYMZ-GCFD6",
-						// 	  "location": locationString
-						// 	},
-						// 	method: 'get',
-						// 	success: function (r) {
-						// 		console.log(r)
-						// 		//输出一下位置信息
-						// 		that.location = r.data.result.address
-						// 		that.$u.toast(that.location)
-						// 	}
-						// });
-						
+						})	
 					}
 				});
 				
@@ -259,11 +241,9 @@
 			},
 			// 选中某个复选框时，由checkbox时触发
 			checkboxChange(e) {
-				console.log(e);
 			},
 			// 选中任一checkbox时，由checkbox-group触发
 			checkboxGroupChange(e) {
-				console.log(e);
 			},
 			submit() {
 				let data = {

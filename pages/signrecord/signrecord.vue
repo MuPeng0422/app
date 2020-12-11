@@ -9,7 +9,7 @@
 			 ></uni-calendar>
 		</view>
 		<view class="sign-info" v-show="show">
-			<view class="item" v-for="(item, index) in data">
+			<view class="item" v-for="(item, index) in dataList" :key="index">
 				<view class="sign-time">
 					上班打卡：{{ item.sbtime }}
 				</view>
@@ -36,7 +36,7 @@
 				year: '',
 				month: '',
 				selected: [],
-				data: []
+				dataList: []
 			}
 		},
 		onLoad(data) {
@@ -69,64 +69,62 @@
 							}
 							
 							if (res.data.data[i].Status === 1) {
-								// row.date = res.data.data[i].date
-								// row.info = ''
-								// const item = {
-								// 	sbtime: '',
-								// 	xbtime: ''
-								// }
 								
-								// item.sbtime = '未排班'
-								// item.xbtime = '未排班'
-								// row.data.push(item)
 							} else if (res.data.data[i].Status === 0) {
 								row.date = res.data.data[i].date
 								row.info = ''
-								for (var j = 0; j < res.data.data[i].work.length; j++) {
-									const item = {
-										sbtime: '',
-										xbtime: ''
+								if (res.data.data[i].work.length > 0) {
+									for (var j = 0; j < res.data.data[i].work.length; j++) {
+										const item = {
+											sbtime: '',
+											xbtime: ''
+										}
+										
+										if (res.data.data[i].work[j].downWork === '未打卡') {
+											item.xbtime = '未打卡'
+										} else {
+											const downWork = res.data.data[i].work[j].downWork.split(' ')
+											item.xbtime = downWork[1]
+										}
+										
+										if (res.data.data[i].work[j].upWork === '未打卡') {
+											item.sbtime = '未打卡'
+										} else {
+											const upWork = res.data.data[i].work[j].upWork.split(' ')
+											item.sbtime = upWork[1]
+										}
+										row.data.push(item)
 									}
-									
-									if (res.data.data[i].work[j].downWork === '未打卡') {
-										item.xbtime = '未打卡'
-									} else {
-										const downWork = res.data.data[i].work[j].downWork.split(' ')
-										item.xbtime = downWork[1]
-									}
-									
-									if (res.data.data[i].work[j].upWork === '未打卡') {
-										item.sbtime = '未打卡'
-									} else {
-										const upWork = res.data.data[i].work[j].upWork.split(' ')
-										item.sbtime = upWork[1]
-									}
-									row.data.push(item)
+								} else {
+									console.log('暂无考勤数据')
 								}
-							} else {
+							} else if (res.data.data[i].Status === 2){
 								row.date = res.data.data[i].date
 								row.info = '异常'
-								for (var j = 0; j < res.data.data[i].work.length; j++) {
-									const item = {
-										sbtime: '',
-										xbtime: ''
+								if (Array.isArray(res.data.data[i].work)) {
+									for (var j = 0; j < res.data.data[i].work.length; j++) {
+										const item = {
+											sbtime: '',
+											xbtime: ''
+										}
+										
+										if (res.data.data[i].work[j].downWork === '未打卡') {
+											item.xbtime = '未打卡'
+										} else {
+											const downWork = res.data.data[i].work[j].downWork.split(' ')
+											item.xbtime = downWork[1]
+										}
+										
+										if (res.data.data[i].work[j].upWork === '未打卡') {
+											item.sbtime = '未打卡'
+										} else {
+											const upWork = res.data.data[i].work[j].upWork.split(' ')
+											item.sbtime = upWork[1]
+										}
+										row.data.push(item)
 									}
-									
-									if (res.data.data[i].work[j].downWork === '未打卡') {
-										item.xbtime = '未打卡'
-									} else {
-										console.log(res.data.data[i].work[j].downWork)
-										const downWork = res.data.data[i].work[j].downWork.split(' ')
-										item.xbtime = downWork[1]
-									}
-									
-									if (res.data.data[i].work[j].upWork === '未打卡') {
-										item.sbtime = '未打卡'
-									} else {
-										const upWork = res.data.data[i].work[j].upWork.split(' ')
-										item.sbtime = upWork[1]
-									}
-									row.data.push(item)
+								} else {
+									console.log('暂无考勤数据')
 								}
 							}
 							this.selected.push(row)
@@ -142,7 +140,8 @@
 				if (e.extraInfo.data === undefined) {
 					this.show = false
 				} else {
-					this.data = e.extraInfo.data
+					this.show = true
+					this.dataList = e.extraInfo.data
 				}
             }
         }

@@ -4,7 +4,7 @@
 			<view class="avatar">
 				<view class="avatar-container">
 					<view class="avatar-img">
-						<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150"></u-avatar>
+						<u-avatar :src="userInfo.userpicPath" mode="circle" :size="150"  bg-color="#F4F4F5"></u-avatar>
 					</view>
 					<view class="avatar-name">
 						<text>{{userInfo.realName}}</text>
@@ -27,30 +27,25 @@
 		data() {
 			return {
 				res: {},
-				userInfo: {},
-				color: ''
+				userInfo: {}
 			}
 		},
-		onReady() {
+		onLoad() {
 			uni.getStorage({
 				key: 'userInfo',
 				success: (res) => {
-					console.log(res)
 					this.res = res.data
 					this.userInfo = res.data.userInfo
 					if (this.userInfo.userpicPath === undefined) {
-						this.userInfo.userpicPath = '/static/default_avatar.jpg'
-					}
-					
-					if (this.userInfo.certificateState === 0) {
-						this.color = '#19be6b'
-					} else if (this.userInfo.certificateState === 1) {
-						this.color = '#ff9900'
-					} else if (this.userInfo.certificateState === 2) {
-						this.color = '#909399'
+						this.userInfo.userpicPath = 'https://xksv.atx.net.cn/xcx_static/img/default_avatar.jpg'
 					}
 				}
 			})
+		},
+		onUnload() {
+			let pages = getCurrentPages(); // 当前页面
+			let beforePage = pages[pages.length - 2]; // 前一个页面
+			beforePage.onLoad(); // 执行前一个页面的onLoad方法
 		},
 		methods: {
 			goCompanyInfo() {

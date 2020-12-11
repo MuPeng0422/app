@@ -269,6 +269,7 @@
 						.item-content-info-name{
 							width: 150rpx;
 							display: flex;
+							flex-direction: column;
 							justify-content: space-between;
 						}
 						
