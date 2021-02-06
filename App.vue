@@ -6,26 +6,18 @@
 			uni.getStorage({//获得保存在本地的用户信息
 				key: 'userInfo',  
 				success:(res) => {
-					if(res.data === '' && res.data.token === '') {
+					if(res.data.hasLogin === true && res.data.userInfo.state === 0) {
+						uni.reLaunch({
+							url: '/pages/index/login'
+						})
+					} else if (res.data.hasLogin === true && res.data.userInfo.state === 1) {
+						uni.reLaunch({
+							url: '/pages/enterprise/index/index'
+						})
+					} else {
 						uni.reLaunch({
 							url: '/pages/login/login'
 						})
-					} else {
-						if(res.data.userInfo === undefined) {
-							uni.reLaunch({
-								url: '/pages/admin/index'
-							})
-						} else {
-							if(res.data.userInfo.state === 0){
-								uni.reLaunch({
-									url: '/pages/index/index'
-								})
-							} else {
-								uni.reLaunch({
-									url: '/pages/enterprise/index/index'
-								})
-							}
-						}
 					}
 				},
 				fail: (err) => {

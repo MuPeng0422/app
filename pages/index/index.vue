@@ -387,7 +387,7 @@
 			uni.getStorage({
 				key: 'userInfo',
 				success: (res) => {
-					this.res = res.data
+					this.res = res.data.userInfo
 					this.getUserInfo()
 					this.getStudyData()
 					this.getScheduling()

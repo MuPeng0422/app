@@ -10,13 +10,13 @@ const store = new Vuex.Store({
         hasLogin: false  
     },  
     mutations: {
-        login(state, provider) {// 改变登录状态
-			state.token = provider.token||''
+        login(state, provider) { // 改变登录状态
+			state.token = provider.token || ''
             state.hasLogin = true  
-            state.userInfo = provider.userInfo
+            state.userInfo = provider
 			uni.setStorage({// 将用户信息保存在本地
 			    key: 'userInfo',  
-			    data: provider
+			    data: state
 			})
         },  
         logout(state) {//退出登录  
